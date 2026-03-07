@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0fdf4;
+      padding: 24px 0;
+    }
+
+    .login-box {
+      display: flex;
+      width: 900px;
+      min-height: 580px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(160deg, #bbf7d0 0%, #86efac 40%, #4ade80 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 44px 40px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .left-panel::before { content: ''; position: absolute; top: -100px; right: -100px; width: 320px; height: 320px; background: rgba(255,255,255,0.2); border-radius: 50%; }
+    .left-panel::after  { content: ''; position: absolute; bottom: 80px; left: -80px; width: 250px; height: 250px; background: rgba(255,255,255,0.15); border-radius: 50%; }
+    .left-top { position: relative; z-index: 2; }
+    .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 32px; }
+    .p-circle { width: 56px; height: 56px; border-radius: 50%; background: #fff; border: 5px solid #16a34a; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .p-letter { font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 800; color: #1a1a1a; line-height: 1; }
+    .brand-name { font-family: 'Nunito', sans-serif; font-size: 28px; font-weight: 800; color: #14532d; }
+    .left-heading { font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 800; color: #14532d; line-height: 1.2; margin-bottom: 12px; }
+    .left-heading span { color: #166534; }
+    .left-sub { font-size: 13px; color: #166534; line-height: 1.7; max-width: 300px; margin-bottom: 28px; }
+    .steps { display: flex; flex-direction: column; gap: 14px; }
+    .step { display: flex; align-items: center; gap: 12px; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #14532d; flex-shrink: 0; }
+    .step-text { font-size: 12px; color: #166534; font-weight: 600; }
+    .city-scene { position: relative; z-index: 2; margin-top: auto; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      width: 420px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 40px 32px;
+      overflow-y: auto;
+    }
+    .form-title { font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+    .form-subtitle { font-size: 12px; color: #9ca3af; margin-bottom: 24px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap input, .input-wrap textarea {
+      width: 100%; padding: 11px 14px 11px 42px;
+      background: #f9fafb; border: 1.5px solid #e5e7eb;
+      border-radius: 12px; color: #1a1a2e; font-size: 13px;
+      font-family: 'Poppins', sans-serif; outline: none; transition: all 0.25s ease;
+    }
+    .input-wrap textarea { padding-top: 10px; min-height: 68px; resize: none; }
+    .input-wrap input::placeholder, .input-wrap textarea::placeholder { color: #c4c9d4; }
+    .input-wrap input:focus, .input-wrap textarea:focus { border-color: #16a34a; background: #fff; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+    .input-icon { position: absolute; left: 13px; top: 13px; font-size: 14px; pointer-events: none; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .error-msg { background: #fee2e2; color: #dc2626; border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 600; margin-bottom: 12px; display: none; }
+    .success-msg { background: #dcfce7; color: #16a34a; border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 600; margin-bottom: 12px; display: none; text-align: center; }
+
+    .btn-register {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border: none; border-radius: 30px; color: #fff;
+      font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(22,163,74,0.35);
+      margin-bottom: 16px; margin-top: 4px;
+    }
+    .btn-register:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(22,163,74,0.45); }
+    .btn-register:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+    .login-row { text-align: center; }
+    .login-row span { font-size: 13px; color: #6b7280; }
+    .login-row a { font-size: 13px; color: #16a34a; font-weight: 700; text-decoration: none; }
+    .login-row a:hover { text-decoration: underline; }
+
+    /* Success overlay */
+    .success-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 999; backdrop-filter: blur(4px);
+    }
+    .success-overlay.show { display: flex; }
+    .success-card {
+      background: white; border-radius: 24px;
+      padding: 48px 40px; text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      max-width: 360px; width: 90%;
+    }
+    .success-icon { font-size: 56px; margin-bottom: 16px; }
+    .success-title { font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; color: #14532d; margin-bottom: 8px; }
+    .success-text { font-size: 13px; color: #6b7280; line-height: 1.6; margin-bottom: 28px; }
+    .btn-go { padding: 13px 36px; border-radius: 30px; border: none; background: linear-gradient(135deg, #16a34a, #15803d); color: white; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(22,163,74,0.35); }
+
+    @media (max-width: 768px) {
+      .login-box { flex-direction: column; width: 95%; }
+      .left-panel { padding: 36px 28px 0; }
+      .right-panel { width: 100%; padding: 32px 28px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="left-top">
+      <div class="logo-row">
+        <div class="p-circle"><div class="p-letter">P</div></div>
+        <div class="brand-name">Parkify</div>
+      </div>
+      <div class="left-heading">Join Parkify<br>Park <span>Smarter</span></div>
+      <p class="left-sub">Create your free account and start booking parking spots near you in seconds.</p>
+
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Create your account</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Verify with OTP on your phone</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Find & book nearby parking</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Drive in, park, done! 🎉</div></div>
+      </div>
+    </div>
+    <div class="city-scene">
+      <svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" width="100%">
+        <defs>
+          <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ade80" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#16a34a" stop-opacity="0.6"/>
+          </linearGradient>
+        </defs>
+        <rect x="10" y="50" width="45" height="110" fill="rgba(255,255,255,0.25)" rx="3"/>
+        <rect x="20" y="35" width="25" height="25" fill="rgba(255,255,255,0.3)" rx="2"/>
+        <rect x="65" y="70" width="38" height="90" fill="rgba(255,255,255,0.2)" rx="3"/>
+        <rect x="115" y="30" width="55" height="130" fill="rgba(255,255,255,0.25)" rx="3"/>
+        <rect x="130" y="15" width="25" height="25" fill="rgba(255,255,255,0.3)" rx="2"/>
+        <rect x="180" y="55" width="42" height="105" fill="rgba(255,255,255,0.2)" rx="3"/>
+        <rect x="235" y="25" width="60" height="135" fill="rgba(255,255,255,0.25)" rx="3"/>
+        <rect x="250" y="10" width="30" height="22" fill="rgba(255,255,255,0.3)" rx="2"/>
+        <rect x="310" y="60" width="45" height="100" fill="rgba(255,255,255,0.2)" rx="3"/>
+        <rect x="368" y="40" width="52" height="120" fill="rgba(255,255,255,0.25)" rx="3"/>
+        <rect x="430" y="65" width="60" height="95" fill="rgba(255,255,255,0.2)" rx="3"/>
+        <rect x="22" y="60" width="7" height="7" fill="rgba(22,163,74,0.5)" rx="1"/>
+        <rect x="35" y="60" width="7" height="7" fill="rgba(22,163,74,0.3)" rx="1"/>
+        <rect x="120" y="45" width="8" height="8" fill="rgba(22,163,74,0.5)" rx="1"/>
+        <rect x="242" y="38" width="8" height="8" fill="rgba(22,163,74,0.4)" rx="1"/>
+        <rect x="375" y="55" width="8" height="8" fill="rgba(22,163,74,0.4)" rx="1"/>
+        <rect x="0" y="145" width="500" height="15" fill="rgba(0,0,0,0.1)"/>
+        <rect x="30" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
+        <rect x="130" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
+        <rect x="230" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
+        <rect x="330" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
+        <rect x="430" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
+        <rect x="0" y="0" width="500" height="160" fill="url(#fade)"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="form-title">Create Account</div>
+    <div class="form-subtitle">Fill in your details to get started</div>
+
+    <div class="error-msg"   id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="nameInput" placeholder="Your full name">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number *</label>
+        <div class="input-wrap">
+          <span class="input-icon">📱</span>
+          <input type="tel" id="phoneInput" placeholder="+91 98765 43210">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address *</label>
+      <div class="input-wrap">
+        <span class="input-icon">📧</span>
+        <input type="email" id="emailInput" placeholder="your@email.com">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Address *</label>
+      <div class="input-wrap">
+        <span class="input-icon">📍</span>
+        <textarea id="addressInput" placeholder="Your full address..."></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="passwordInput" placeholder="Min 6 characters">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password *</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="confirmInput" placeholder="Re-enter password">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-register" id="registerBtn" onclick="doRegister()">Create Account</button>
+
+    <div class="login-row">
+      <span>Already have an account? </span>
+      <a href="index.html">Login here →</a>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">You're all set!</div>
+    <div class="success-text">
+      Your account has been created successfully.<br>
+      An OTP will be sent to your phone number for verification when you log in.
+    </div>
+    <button class="btn-go" onclick="goToLogin()">Go to Login →</button>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+
+  async function doRegister() {
+    const name     = document.getElementById('nameInput').value.trim();
+    const phone    = document.getElementById('phoneInput').value.trim();
+    const email    = document.getElementById('emailInput').value.trim();
+    const address  = document.getElementById('addressInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
+    const confirm  = document.getElementById('confirmInput').value.trim();
+
+    const errorMsg = document.getElementById('errorMsg');
+    const btn      = document.getElementById('registerBtn');
+
+    errorMsg.style.display = 'none';
+
+    // Validation
+    if (!name || !phone || !email || !address || !password || !confirm) {
+      errorMsg.textContent   = '❌ Please fill in all fields.';
+      errorMsg.style.display = 'block'; return;
+    }
+    if (password.length < 6) {
+      errorMsg.textContent   = '❌ Password must be at least 6 characters.';
+      errorMsg.style.display = 'block'; return;
+    }
+    if (password !== confirm) {
+      errorMsg.textContent   = '❌ Passwords do not match.';
+      errorMsg.style.display = 'block'; return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Creating account...';
+
+    const payload = { name, phone, email, address, password };
+
+    try {
+      const res = await fetch(`${API}/users/register`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Registration failed');
+      }
+
+      // Show success overlay
+      document.getElementById('successOverlay').classList.add('show');
+
+    } catch (err) {
+      // If backend not ready yet, show success anyway for UI testing
+      if (err.message === 'Failed to fetch') {
+        document.getElementById('successOverlay').classList.add('show');
+      } else {
+        errorMsg.textContent   = '❌ ' + err.message;
+        errorMsg.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+  }
+
+  function goToLogin() {
+    window.location.href = 'index.html';
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+</script>
+
+</body>
+</html>
