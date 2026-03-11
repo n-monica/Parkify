@@ -215,7 +215,7 @@
         <label class="form-label-sm">Operating Hours</label>
         <div class="input-wrap">
           <div class="input-icon-sm">⏰</div>
-          <input type="text" id="operatingHours" placeholder="e.g. 6 AM – 10 PM">
+          <input type="text" id="hours" placeholder="e.g. 6 AM – 10 PM">
         </div>
       </div>
       <button class="btn-update" id="statusBtn" onclick="updateStatus()">Update Status</button>
@@ -272,9 +272,9 @@
 
       // Fill pricing fields with first parking's values
       if (parkings.length > 0) {
-        document.getElementById('carPrice').value = parkings[0].carPricePerHour || '';
-        document.getElementById('bikePrice').value = parkings[0].bikePricePerHour || '';
-        document.getElementById('operatingHours').value = parkings[0].operatingHours || '';
+        document.getElementById('carPrice').value = parkings[0].carPrice || '';
+        document.getElementById('bikePrice').value = parkings[0].bikePrice || '';
+        document.getElementById('hours').value = parkings[0].hours || '';
       }
 
       // Render slot overview
@@ -289,8 +289,8 @@
   document.getElementById('pricingParkingSelect').addEventListener('change', function() {
     const p = parkings.find(x => x.id == this.value);
     if (p) {
-      document.getElementById('carPrice').value = p.carPricePerHour || '';
-      document.getElementById('bikePrice').value = p.bikePricePerHour || '';
+      document.getElementById('carPrice').value = p.carPrice || '';
+      document.getElementById('bikePrice').value = p.bikePrice || '';
     }
   });
 
@@ -299,7 +299,7 @@
     const p = parkings.find(x => x.id == this.value);
     if (p) {
       document.getElementById('parkingStatus').value = p.status || 'Open';
-      document.getElementById('operatingHours').value = p.operatingHours || '';
+      document.getElementById('hours').value = p.hours || '';
       updateStatusDisplay(p.status || 'Open');
     }
   });
@@ -364,8 +364,8 @@
       data: {
         labels: parkings.map(p => p.name.split(' ')[0]),
         datasets: [
-          { label: 'Car Price/hr (₹)', data: parkings.map(p => p.carPricePerHour || 0), backgroundColor: '#34d399', borderRadius: 6 },
-          { label: 'Bike Price/hr (₹)', data: parkings.map(p => p.bikePricePerHour || 0), backgroundColor: '#6ee7b7', borderRadius: 6 }
+          { label: 'Car Price/hr (₹)', data: parkings.map(p => p.carPrice || 0), backgroundColor: '#34d399', borderRadius: 6 },
+          { label: 'Bike Price/hr (₹)', data: parkings.map(p => p.bikePrice || 0), backgroundColor: '#6ee7b7', borderRadius: 6 }
         ]
       },
       options: {
@@ -399,14 +399,14 @@
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          carPricePerHour: parseFloat(document.getElementById('carPrice').value) || 0,
-          bikePricePerHour: parseFloat(document.getElementById('bikePrice').value) || 0
+          carPrice: parseFloat(document.getElementById('carPrice').value) || 0,
+          bikePrice: parseFloat(document.getElementById('bikePrice').value) || 0
         })
       });
       if (!res.ok) throw new Error();
       // Update local data
       const p = parkings.find(x => x.id == parkingId);
-      if (p) { p.carPricePerHour = parseFloat(document.getElementById('carPrice').value); p.bikePricePerHour = parseFloat(document.getElementById('bikePrice').value); }
+      if (p) { p.carPrice = parseFloat(document.getElementById('carPrice').value); p.bikePrice = parseFloat(document.getElementById('bikePrice').value); }
       renderCharts();
       showToast('✅ Pricing updated!', 'success');
     } catch {
@@ -423,17 +423,17 @@
     const btn = document.getElementById('statusBtn');
     btn.disabled = true; btn.textContent = 'Saving...';
     const status = document.getElementById('parkingStatus').value;
-    const operatingHours = document.getElementById('operatingHours').value;
+    const hours = document.getElementById('hours').value;
 
     try {
       const res = await fetch(`${API}/parkings/${parkingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, operatingHours })
+        body: JSON.stringify({ status, hours })
       });
       if (!res.ok) throw new Error();
       const p = parkings.find(x => x.id == parkingId);
-      if (p) { p.status = status; p.operatingHours = operatingHours; }
+      if (p) { p.status = status; p.hours = hours; }
       updateStatusDisplay(status);
       renderCharts();
       showToast('✅ Status updated!', 'success');

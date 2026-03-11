@@ -28,7 +28,6 @@
       box-shadow: 0 24px 64px rgba(0,0,0,0.12);
     }
 
-    /* ── LEFT PANEL ── */
     .left-panel {
       flex: 1;
       background: linear-gradient(160deg, #bbf7d0 0%, #86efac 40%, #4ade80 100%);
@@ -85,7 +84,6 @@
     }
     .city-scene { position: relative; z-index: 2; margin-top: auto; }
 
-    /* ── RIGHT PANEL ── */
     .right-panel {
       width: 400px;
       background: #ffffff;
@@ -115,6 +113,7 @@
     .remember-label input[type="checkbox"] { width: 14px; height: 14px; accent-color: #16a34a; }
 
     .error-msg { background: #fee2e2; color: #dc2626; border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 600; margin-bottom: 14px; display: none; }
+    .success-msg { background: #dcfce7; color: #16a34a; border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 600; margin-bottom: 14px; display: none; }
 
     .btn-login {
       width: 100%; padding: 13px;
@@ -128,7 +127,6 @@
     .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(22,163,74,0.45); }
     .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-    /* Register link */
     .register-row { text-align: center; margin-bottom: 20px; }
     .register-row span { font-size: 13px; color: #6b7280; }
     .register-row a { font-size: 13px; color: #16a34a; font-weight: 700; text-decoration: none; }
@@ -136,7 +134,6 @@
 
     .divider { height: 1px; background: #f3f4f6; margin-bottom: 14px; }
 
-    /* Admin / Owner links */
     .portal-links { text-align: center; }
     .portal-links p { font-size: 11px; color: #c4c9d4; margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; }
     .portal-btns { display: flex; gap: 10px; justify-content: center; }
@@ -214,6 +211,7 @@
     <div class="form-subtitle">Login to find and book your parking spot</div>
 
     <div class="error-msg" id="errorMsg">❌ Please fill in all fields.</div>
+    <div class="success-msg" id="successMsg">✅ Login successful! Redirecting...</div>
 
     <div class="form-group">
       <label class="form-label">Email Address</label>
@@ -247,7 +245,6 @@
 
     <button class="btn-login" id="loginBtn" onclick="doLogin()">Login</button>
 
-    <!-- Register link -->
     <div class="register-row">
       <span>New to Parkify? </span>
       <a href="user-register.html">Register here →</a>
@@ -255,7 +252,6 @@
 
     <div class="divider"></div>
 
-    <!-- Admin / Owner portal links -->
     <div class="portal-links">
       <p>Are you a —</p>
       <div class="portal-btns">
@@ -267,43 +263,66 @@
 </div>
 
 <script>
-  function doLogin() {
+  async function doLogin() {
     const email    = document.getElementById('emailInput').value.trim();
     const phone    = document.getElementById('phoneInput').value.trim();
     const password = document.getElementById('passwordInput').value.trim();
-    const errorMsg = document.getElementById('errorMsg');
-    const btn      = document.getElementById('loginBtn');
+    const errorMsg  = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+    const btn       = document.getElementById('loginBtn');
 
+    // Validate fields
     if (!email || !phone || !password) {
       errorMsg.textContent   = '❌ Please fill in all fields.';
       errorMsg.style.display = 'block';
+      successMsg.style.display = 'none';
       return;
     }
 
-    errorMsg.style.display = 'none';
+    errorMsg.style.display   = 'none';
+    successMsg.style.display = 'none';
     btn.disabled    = true;
     btn.textContent = 'Logging in...';
 
-    // Save user info to localStorage
-    // Name will be properly set after registration; derive from email for now
-    const namePart  = email.split('@')[0];
-    const userName  = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    try {
+      // Call Spring Boot backend
+      const response = await fetch('http://localhost:8080/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
+      });
 
-    const userData = {
-      id:    1,
-      name:  userName,
-      email: email,
-      phone: phone
-    };
+      if (response.ok) {
+        const user = await response.json();
 
-    localStorage.setItem('userId',   userData.id);
-    localStorage.setItem('userName', userData.name);
-    localStorage.setItem('userEmail',userData.email);
-    localStorage.setItem('userPhone',userData.phone);
-    localStorage.setItem('userData', JSON.stringify(userData));
+        // Save real user data from database
+        localStorage.setItem('userId',    user.id);
+        localStorage.setItem('userName',  user.name);
+        localStorage.setItem('userEmail', user.email);
+        localStorage.setItem('userPhone', user.phone);
+        localStorage.setItem('userData',  JSON.stringify(user));
 
-    // Redirect to user dashboard (build this next)
-    window.location.href = 'user-dashboard.html';
+        // Show success message
+        successMsg.style.display = 'block';
+
+        // Redirect after 1 second
+        setTimeout(() => {
+          window.location.href = 'user-dashboard.html';
+        }, 1000);
+
+      } else {
+        errorMsg.textContent   = '❌ Invalid email or password. Please try again.';
+        errorMsg.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Login';
+      }
+
+    } catch (error) {
+      errorMsg.textContent   = '❌ Cannot connect to server. Make sure backend is running on port 8080!';
+      errorMsg.style.display = 'block';
+      btn.disabled    = false;
+      btn.textContent = 'Login';
+    }
   }
 
   document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });

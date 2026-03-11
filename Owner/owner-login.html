@@ -26,7 +26,6 @@
       box-shadow: 0 24px 64px rgba(0,0,0,0.12);
     }
 
-    /* ── LEFT PANEL ── */
     .left-panel {
       flex: 1;
       background: linear-gradient(160deg, #bbf7d0 0%, #86efac 40%, #4ade80 100%);
@@ -121,7 +120,6 @@
 
     .city-scene { position: relative; z-index: 2; margin-top: auto; }
 
-    /* ── RIGHT PANEL ── */
     .right-panel {
       width: 400px;
       background: #ffffff;
@@ -197,6 +195,13 @@
       margin-bottom: 16px; display: none;
     }
 
+    .success-msg {
+      background: #dcfce7; color: #16a34a;
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 12px; font-weight: 600;
+      margin-bottom: 16px; display: none;
+    }
+
     .btn-login {
       width: 100%; padding: 14px;
       background: linear-gradient(135deg, #16a34a, #15803d);
@@ -247,7 +252,6 @@
       <div class="badge">🚗 &nbsp;Live Slot Monitoring</div>
     </div>
 
-    <!-- City SVG Scene -->
     <div class="city-scene">
       <svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" width="100%">
         <defs>
@@ -267,13 +271,11 @@
         <rect x="310" y="60" width="45" height="100" fill="rgba(255,255,255,0.2)" rx="3"/>
         <rect x="368" y="40" width="52" height="120" fill="rgba(255,255,255,0.25)" rx="3"/>
         <rect x="430" y="65" width="60" height="95" fill="rgba(255,255,255,0.2)" rx="3"/>
-        <!-- Windows -->
         <rect x="22" y="60" width="7" height="7" fill="rgba(22,163,74,0.5)" rx="1"/>
         <rect x="35" y="60" width="7" height="7" fill="rgba(22,163,74,0.3)" rx="1"/>
         <rect x="120" y="45" width="8" height="8" fill="rgba(22,163,74,0.5)" rx="1"/>
         <rect x="242" y="38" width="8" height="8" fill="rgba(22,163,74,0.4)" rx="1"/>
         <rect x="375" y="55" width="8" height="8" fill="rgba(22,163,74,0.4)" rx="1"/>
-        <!-- Road -->
         <rect x="0" y="145" width="500" height="15" fill="rgba(0,0,0,0.1)"/>
         <rect x="30" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
         <rect x="130" y="150" width="50" height="4" fill="rgba(255,255,255,0.5)" rx="2"/>
@@ -290,7 +292,8 @@
     <div class="form-title">Owner Login</div>
     <div class="form-subtitle">Access your Parking Owner Dashboard</div>
 
-    <div class="error-msg" id="errorMsg">❌ Invalid email or password. Please try again.</div>
+    <div class="error-msg" id="errorMsg">❌ Invalid email or password.</div>
+    <div class="success-msg" id="successMsg">✅ Login successful! Redirecting...</div>
 
     <div class="form-group">
       <label class="form-label">Email</label>
@@ -323,44 +326,67 @@
 </div>
 
 <script>
-  function doLogin() {
+  async function doLogin() {
     const email    = document.getElementById('emailInput').value.trim();
     const password = document.getElementById('passwordInput').value.trim();
-    const errorMsg = document.getElementById('errorMsg');
-    const btn      = document.getElementById('loginBtn');
+    const errorMsg  = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+    const btn       = document.getElementById('loginBtn');
 
-    // Only check that fields are not empty
+    // Check empty fields
     if (!email || !password) {
       errorMsg.textContent   = '❌ Please enter your email and password.';
       errorMsg.style.display = 'block';
+      successMsg.style.display = 'none';
       return;
     }
 
-    errorMsg.style.display = 'none';
+    errorMsg.style.display   = 'none';
+    successMsg.style.display = 'none';
     btn.disabled    = true;
     btn.textContent = 'Logging in...';
 
-    // Save whatever the user typed into localStorage
-    // Extract a display name from the email (e.g. "rajesh@gmail.com" → "Rajesh")
-    const namePart = email.split('@')[0];
-    const ownerName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    try {
+      // Call Spring Boot backend
+      const response = await fetch('http://localhost:8080/api/owners/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
+      });
 
-    const ownerData = {
-      id:    1,         // default ownerId — update when AuthController is ready
-      name:  ownerName,
-      email: email
-    };
+      if (response.ok) {
+        const owner = await response.json();
 
-    localStorage.setItem('ownerId',    ownerData.id);
-    localStorage.setItem('ownerName',  ownerData.name);
-    localStorage.setItem('ownerEmail', ownerData.email);
-    localStorage.setItem('ownerData',  JSON.stringify(ownerData));
+        // Save real owner data from database
+        localStorage.setItem('ownerId',   owner.id);
+        localStorage.setItem('ownerName', owner.name);
+        localStorage.setItem('ownerEmail', owner.email);
+        localStorage.setItem('ownerData', JSON.stringify(owner));
 
-    // Redirect to dashboard
-    window.location.href = 'owner-dashboard.html';
+        // Show success
+        successMsg.style.display = 'block';
+
+        // Redirect after 1 second
+        setTimeout(() => {
+          window.location.href = 'owner-dashboard.html';
+        }, 1000);
+
+      } else {
+        errorMsg.textContent   = '❌ Invalid email or password. Please try again.';
+        errorMsg.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Login';
+      }
+
+    } catch (error) {
+      errorMsg.textContent   = '❌ Cannot connect to server. Make sure backend is running on port 8080!';
+      errorMsg.style.display = 'block';
+      btn.disabled    = false;
+      btn.textContent = 'Login';
+    }
   }
 
-  // Allow pressing Enter to login
+  // Allow Enter key to login
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') doLogin();
   });
