@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | Owner Registration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: #f0fdf4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .box {
+      display: flex;
+      width: 100%;
+      max-width: 980px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+      min-height: 600px;
+    }
+
+    /* LEFT */
+    .left {
+      flex: 0 0 360px;
+      background: linear-gradient(160deg, #bbf7d0 0%, #86efac 40%, #4ade80 100%);
+      display: flex;
+      flex-direction: column;
+      padding: 44px 36px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .left::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 300px; height: 300px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+    }
+    .left::after {
+      content: '';
+      position: absolute;
+      bottom: 60px; left: -80px;
+      width: 220px; height: 220px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+    }
+    .left-content { position: relative; z-index: 2; }
+    .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+    .p-circle {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #fff; border: 4px solid #16a34a;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .p-letter { font-family: 'Nunito',sans-serif; font-size: 28px; font-weight: 800; color: #1a1a1a; }
+    .brand-name { font-family: 'Nunito',sans-serif; font-size: 26px; font-weight: 800; color: #14532d; }
+    .left-heading { font-family: 'Nunito',sans-serif; font-size: 28px; font-weight: 800; color: #14532d; line-height: 1.2; margin-bottom: 10px; }
+    .left-sub { font-size: 13px; color: #166534; line-height: 1.7; margin-bottom: 24px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 30px; padding: 7px 14px;
+      font-size: 12px; color: #14532d; font-weight: 600;
+      backdrop-filter: blur(8px); margin-bottom: 10px;
+    }
+    .step { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; margin-top: 20px; }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #16a34a; color: #fff;
+      font-family: 'Nunito',sans-serif; font-size: 12px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-text { font-size: 12px; color: #14532d; font-weight: 500; padding-top: 4px; }
+
+    /* RIGHT */
+    .right {
+      flex: 1;
+      background: #fff;
+      padding: 40px 44px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-title { font-family: 'Nunito',sans-serif; font-size: 22px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+    .form-subtitle { font-size: 13px; color: #9ca3af; margin-bottom: 8px; }
+
+    .section-label {
+      font-size: 11px; font-weight: 700; color: #16a34a;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin: 18px 0 12px; padding-bottom: 6px;
+      border-bottom: 1px solid #dcfce7;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%;
+      padding: 11px 14px 11px 42px;
+      background: #f9fafb;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      color: #1a1a2e; font-size: 13px;
+      font-family: 'Poppins',sans-serif;
+      outline: none; transition: all 0.2s;
+    }
+    .input-wrap input:focus {
+      border-color: #16a34a;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+    }
+    .input-wrap input::placeholder { color: #c4c9d4; }
+    .input-icon {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px; pointer-events: none;
+    }
+
+    /* MAP */
+    .map-container {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1.5px solid #e5e7eb;
+      margin-bottom: 10px;
+    }
+    #map { height: 220px; width: 100%; }
+
+    .map-hint {
+      font-size: 11px; color: #9ca3af;
+      margin-bottom: 12px;
+      background: #f0fdf4;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border-left: 3px solid #16a34a;
+    }
+
+    .coords-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .coord-box {
+      background: #f9fafb;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #374151;
+    }
+    .coord-box span { font-weight: 700; color: #16a34a; }
+    .coord-box.set { border-color: #86efac; background: #f0fdf4; }
+
+    .error-msg {
+      background: #fee2e2; color: #dc2626;
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 12px; font-weight: 600;
+      margin-bottom: 12px; display: none;
+    }
+    .success-msg {
+      background: #dcfce7; color: #16a34a;
+      border-radius: 10px; padding: 12px 14px;
+      font-size: 12px; font-weight: 600;
+      margin-bottom: 12px; display: none; line-height: 1.6;
+    }
+
+    .btn-register {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border: none; border-radius: 30px; color: #fff;
+      font-family: 'Nunito',sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.3s;
+      box-shadow: 0 6px 20px rgba(22,163,74,0.35);
+      margin-top: 16px; margin-bottom: 16px;
+    }
+    .btn-register:hover { transform: translateY(-2px); }
+    .btn-register:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+    .login-link { text-align: center; font-size: 13px; color: #9ca3af; }
+    .login-link a { color: #16a34a; font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="left-content">
+      <div class="logo-row">
+        <div class="p-circle"><div class="p-letter">P</div></div>
+        <div class="brand-name">Parkify</div>
+      </div>
+      <div class="left-heading">Register as a<br>Parking Owner</div>
+      <p class="left-sub">Fill in your details and our admin will verify and approve your account before you can start.</p>
+
+      <div class="badge">🅿️ &nbsp;Register your parking space</div><br>
+      <div class="badge">📞 &nbsp;Admin verifies your details</div><br>
+      <div class="badge">✅ &nbsp;Login and start managing</div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Fill in your personal and parking details</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">Pin your parking location on the map</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Admin reviews, calls you and approves</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Login and start managing your slots</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="form-title">Create Owner Account</div>
+    <div class="form-subtitle">All fields are required for verification</div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+
+    <!-- Personal Info -->
+    <div class="section-label">👤 Personal Information</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="name" placeholder="Your full name">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <div class="input-wrap">
+          <span class="input-icon">📞</span>
+          <input type="tel" id="phone" placeholder="10-digit number">
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">📧</span>
+          <input type="email" id="email" placeholder="your@email.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" placeholder="Create a password">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Aadhaar / PAN Number</label>
+      <div class="input-wrap">
+        <span class="input-icon">🪪</span>
+        <input type="text" id="idProof" placeholder="e.g. ABCDE1234F or 1234 5678 9012">
+      </div>
+    </div>
+
+    <!-- Parking Details -->
+    <div class="section-label">🅿️ Parking Details</div>
+    <div class="form-group">
+      <label class="form-label">Parking / Business Name</label>
+      <div class="input-wrap">
+        <span class="input-icon">🏢</span>
+        <input type="text" id="parkingName" placeholder="e.g. City Center Parking">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">City</label>
+        <div class="input-wrap">
+          <span class="input-icon">🌆</span>
+          <input type="text" id="city" placeholder="e.g. Bangalore">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parking Address</label>
+        <div class="input-wrap">
+          <span class="input-icon">📍</span>
+          <input type="text" id="parkingAddress" placeholder="Street / Area">
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Picker -->
+    <div class="section-label">📍 Pin Your Parking Location</div>
+
+<!-- Search box -->
+<div class="form-group">
+  <label class="form-label">Search Parking Location</label>
+  <div style="display:flex;gap:8px">
+    <div class="input-wrap" style="flex:1">
+      <span class="input-icon">🔍</span>
+      <input type="text" id="mapSearch" placeholder="Search address, landmark..."
+        style="padding:11px 14px 11px 42px;width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();searchLocation();}">
+    </div>
+    <button onclick="searchLocation()"
+      style="padding:11px 18px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">
+      Search
+    </button>
+  </div>
+</div>
+
+<div class="map-hint">
+  🗺️ Search your parking address above or click anywhere on the map to drop a pin. You can drag the pin to adjust it precisely.
+</div>
+<div class="map-container">
+  <div id="map"></div>
+</div>
+<div class="coords-row">
+  <div class="coord-box" id="latBox">📍 Latitude: <span id="latDisplay">Not set</span></div>
+  <div class="coord-box" id="lngBox">📍 Longitude: <span id="lngDisplay">Not set</span></div>
+</div>
+
+<button class="btn-register" id="registerBtn" onclick="doRegister()">Submit Registration</button>
+<div class="login-link">Already have an account? <a href="owner-login.html">Login here</a></div>
+</div>
+
+</div>
+<script>
+  // ── MAP SETUP ──
+  let lat = null, lng = null;
+  let marker = null;
+
+  const map = L.map('map').setView([20.5937, 78.9629], 5); // India center
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Custom green marker
+  const greenIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
+  map.on('click', function(e) {
+    lat = e.latlng.lat.toFixed(6);
+    lng = e.latlng.lng.toFixed(6);
+
+    // Remove old marker
+    if (marker) map.removeLayer(marker);
+
+    // Add new draggable marker
+    marker = L.marker([lat, lng], { icon: greenIcon, draggable: true }).addTo(map);
+    marker.bindPopup('📍 Your parking location').openPopup();
+
+    // Update coords display
+    updateCoordsDisplay(lat, lng);
+
+    // When marker is dragged
+    marker.on('dragend', function(event) {
+      const pos = event.target.getLatLng();
+      lat = pos.lat.toFixed(6);
+      lng = pos.lng.toFixed(6);
+      updateCoordsDisplay(lat, lng);
+    });
+    
+  });
+  map.on('click', function(e) {
+    lat = e.latlng.lat.toFixed(6);
+    lng = e.latlng.lng.toFixed(6);
+
+    if (marker) map.removeLayer(marker);
+
+    marker = L.marker([lat, lng], { icon: greenIcon, draggable: true }).addTo(map);
+    marker.bindPopup('📍 Your parking location').openPopup();
+
+    updateCoordsDisplay(lat, lng);
+
+    marker.on('dragend', function(event) {
+      const pos = event.target.getLatLng();
+      lat = pos.lat.toFixed(6);
+      lng = pos.lng.toFixed(6);
+      updateCoordsDisplay(lat, lng);
+    });
+  });   // ← close map.on here
+
+  // searchLocation is OUTSIDE map.on
+  async function searchLocation() {
+    const query = document.getElementById('mapSearch').value.trim();
+    if (!query) return;
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+      const data = await res.json();
+
+      if (data.length === 0) {
+        alert('Location not found. Try a more specific address.');
+        return;
+      }
+
+      const result = data[0];
+      const searchLat = parseFloat(result.lat);
+      const searchLng = parseFloat(result.lon);
+
+      map.setView([searchLat, searchLng], 16);
+
+      if (marker) map.removeLayer(marker);
+      marker = L.marker([searchLat, searchLng], { icon: greenIcon, draggable: true }).addTo(map);
+      marker.bindPopup('📍 ' + result.display_name).openPopup();
+
+      lat = searchLat.toFixed(6);
+      lng = searchLng.toFixed(6);
+      updateCoordsDisplay(lat, lng);
+
+      marker.on('dragend', function(event) {
+        const pos = event.target.getLatLng();
+        lat = pos.lat.toFixed(6);
+        lng = pos.lng.toFixed(6);
+        updateCoordsDisplay(lat, lng);
+      });
+
+    } catch {
+      alert('Search failed. Please try again.');
+    }
+  }
+
+  function updateCoordsDisplay(lat, lng) {
+    document.getElementById('latDisplay').textContent = lat;
+    document.getElementById('lngDisplay').textContent = lng;
+    document.getElementById('latBox').classList.add('set');
+    document.getElementById('lngBox').classList.add('set');
+  }
+
+  // Auto-locate user on load
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+    });
+  }
+
+
+  // ── REGISTER ──
+  async function doRegister() {
+    const name           = document.getElementById('name').value.trim();
+    const phone          = document.getElementById('phone').value.trim();
+    const email          = document.getElementById('email').value.trim();
+    const password       = document.getElementById('password').value.trim();
+    const idProof        = document.getElementById('idProof').value.trim();
+    const parkingName    = document.getElementById('parkingName').value.trim();
+    const city           = document.getElementById('city').value.trim();
+    const parkingAddress = document.getElementById('parkingAddress').value.trim();
+
+    const errorMsg   = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+    const btn        = document.getElementById('registerBtn');
+
+    errorMsg.style.display   = 'none';
+    successMsg.style.display = 'none';
+
+    if (!name || !phone || !email || !password || !idProof || !parkingName || !city || !parkingAddress) {
+      errorMsg.textContent   = '❌ Please fill in all fields.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+    if (phone.length < 10) {
+      errorMsg.textContent   = '❌ Enter a valid 10-digit phone number.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+    if (!lat || !lng) {
+      errorMsg.textContent   = '❌ Please pin your parking location on the map.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Submitting...';
+
+    try {
+      const res = await fetch('http://localhost:8080/api/owners/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, phone, email, password, idProof,
+          parkingName, city, parkingAddress,
+          lat: parseFloat(lat),
+          lng: parseFloat(lng)
+        })
+      });
+
+      if (res.ok) {
+        successMsg.innerHTML   = '✅ Registration submitted!<br>The admin will verify your details and call you on <b>' + phone + '</b> for approval.<br>Once approved, you can login.';
+        successMsg.style.display = 'block';
+        btn.textContent = 'Submitted!';
+      } else if (res.status === 409) {
+        errorMsg.textContent   = '❌ This email is already registered.';
+        errorMsg.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Submit Registration';
+      } else {
+        errorMsg.textContent   = '❌ Something went wrong. Please try again.';
+        errorMsg.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Submit Registration';
+      }
+    } catch {
+      errorMsg.textContent   = '❌ Cannot connect to server. Make sure backend is running.';
+      errorMsg.style.display = 'block';
+      btn.disabled    = false;
+      btn.textContent = 'Submit Registration';
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+</script>
+
+</body>
+</html>

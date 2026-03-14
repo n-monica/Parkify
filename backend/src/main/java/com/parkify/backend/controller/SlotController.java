@@ -3,6 +3,7 @@ package com.parkify.backend.controller;
 import com.parkify.backend.model.Slot;
 import com.parkify.backend.service.SlotService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -21,6 +22,24 @@ public class SlotController {
             return slotService.getSlotsByParking(parkingId);
         }
         return slotService.getAllSlots();
+    }
+
+    // TEMPORARY - fix slot types based on slot number prefix
+    // Visit: http://localhost:8080/api/slots/fix-types once, then remove this
+    @GetMapping("/fix-types")
+    public ResponseEntity<?> fixSlotTypes() {
+        List<Slot> allSlots = slotService.getAllSlots();
+        for (Slot s : allSlots) {
+            if (s.getSlotNumber() != null) {
+                if (s.getSlotNumber().toUpperCase().startsWith("B")) {
+                    s.setType("bike");
+                } else {
+                    s.setType("car");
+                }
+                slotService.saveSlot(s);
+            }
+        }
+        return ResponseEntity.ok("Fixed " + allSlots.size() + " slots!");
     }
 
     // GET slots by parking path variable

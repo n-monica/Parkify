@@ -47,13 +47,13 @@
     .logout-btn { background: #fff; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--accent-dark); cursor: pointer; text-decoration: none; transition: all 0.2s; }
     .logout-btn:hover { background: var(--accent-light); }
 
-    .parking-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 28px; }
+    .parking-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; margin-bottom: 28px; }
     .parking-card { background: #fff; border-radius: 18px; padding: 28px; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: transform 0.2s; }
     .parking-card:hover { transform: translateY(-3px); }
     .parking-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
     .parking-name { font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-dark); }
     .parking-location { font-size: 12px; color: var(--text-light); margin-top: 4px; }
-    .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
     .status-open { background: #d1fae5; color: #059669; }
     .status-closed { background: #fee2e2; color: #dc2626; }
     .parking-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -126,7 +126,7 @@
     </div>
     <div class="topbar-right">
       <div class="date-badge" id="dateBadge">📅 Loading...</div>
-      <a href="owner-login.html" class="logout-btn" onclick="logout()">Logout</a>
+      <a href="owner-login.html" class="logout-btn" onclick="localStorage.clear()">Logout</a>
     </div>
   </div>
 
@@ -144,20 +144,29 @@
       <input class="form-input" id="modalName" type="text">
     </div>
     <div class="form-group">
-      <label class="form-label">Location</label>
+      <label class="form-label">Location / Address</label>
       <input class="form-input" id="modalLocation" type="text">
     </div>
     <div class="form-group">
       <label class="form-label">Car Price per Hour (₹)</label>
-      <input class="form-input" id="modalCar" type="number">
+      <input class="form-input" id="modalCar" type="number" min="0">
     </div>
     <div class="form-group">
       <label class="form-label">Bike Price per Hour (₹)</label>
-      <input class="form-input" id="modalBike" type="number">
+      <input class="form-input" id="modalBike" type="number" min="0">
     </div>
     <div class="form-group">
       <label class="form-label">Operating Hours</label>
-      <input class="form-input" id="modalHours" type="text" placeholder="e.g. 6 AM – 10 PM">
+      <input class="form-input" id="modalHours" type="text" placeholder="e.g. 6 AM – 10 PM or 24/7">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="modalStatus">
+        <option value="Open">Open</option>
+        <option value="Closed">Closed</option>
+        <option value="Full">Full</option>
+        <option value="Maintenance">Maintenance</option>
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
@@ -173,97 +182,124 @@
   let currentParkingId = null;
   let parkings = [];
 
-  // ── FIX 1: Read owner from localStorage correctly ──
-  // Try multiple possible keys that login page might use
-  const ownerData = JSON.parse(localStorage.getItem('ownerData') || localStorage.getItem('owner') || 'null');
-  const ownerId   = ownerData?.id   || localStorage.getItem('ownerId')   || 1;
+  // Read owner from localStorage
+  const ownerData = JSON.parse(localStorage.getItem('ownerData') || 'null');
+  const ownerId   = ownerData?.id || localStorage.getItem('ownerId') || 1;
   const ownerName = ownerData?.name || localStorage.getItem('ownerName') || 'Owner';
 
-  // Set sidebar name & avatar
-  document.getElementById('sidebarName').textContent = ownerName;
+  document.getElementById('sidebarName').textContent   = ownerName;
   document.getElementById('sidebarAvatar').textContent = ownerName.charAt(0).toUpperCase();
+  document.getElementById('dateBadge').textContent     = '📅 ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  // Set date
-  document.getElementById('dateBadge').textContent = '📅 ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  function logout() {
-    localStorage.clear();
-  }
-
-  // ── FIX 2: After loading parkings, fetch slot counts for each ──
   async function loadParkings() {
+    const grid = document.getElementById('parkingGrid');
+    grid.innerHTML = '<div class="loading">Loading your parking locations...</div>';
+
     try {
       const res = await fetch(`${API}/parkings?ownerId=${ownerId}`);
-      if (!res.ok) throw new Error('Failed to load');
+      if (!res.ok) throw new Error('API error');
       parkings = await res.json();
 
-      // Fetch slot counts for each parking in parallel
+      console.log('Parkings loaded:', parkings); // debug
+
+      if (!parkings || parkings.length === 0) {
+        grid.innerHTML = '<div class="loading">⚠️ No parking locations found for your account.</div>';
+        return;
+      }
+
+      // Fetch slot counts for each parking
       await Promise.all(parkings.map(async (p) => {
         try {
           const slotRes = await fetch(`${API}/slots?parkingId=${p.id}`);
           if (slotRes.ok) {
             const slots = await slotRes.json();
-            p.totalCarSlots  = slots.filter(s => s.type === 'car'  || s.slotType === 'car'  || s.vehicleType === 'car').length;
-            p.totalBikeSlots = slots.filter(s => s.type === 'bike' || s.slotType === 'bike' || s.vehicleType === 'bike').length;
+            p._totalSlots = slots.length;
+            p._carSlots   = slots.filter(s => (s.type || '').toLowerCase() === 'car').length;
+            p._bikeSlots  = slots.filter(s => (s.type || '').toLowerCase() === 'bike').length;
+          } else {
+            p._totalSlots = 0; p._carSlots = 0; p._bikeSlots = 0;
           }
-        } catch (e) {
-          // If slots endpoint fails, keep 0 counts
-          p.totalCarSlots  = p.totalCarSlots  || 0;
-          p.totalBikeSlots = p.totalBikeSlots || 0;
+        } catch {
+          p._totalSlots = 0; p._carSlots = 0; p._bikeSlots = 0;
         }
       }));
 
       renderParkings();
+
     } catch (err) {
-      document.getElementById('parkingGrid').innerHTML = '<div class="loading">❌ Could not load parking data. Make sure your backend is running.</div>';
+      console.error('loadParkings error:', err);
+      grid.innerHTML = '<div class="loading">❌ Could not load parking data. Make sure your backend is running.</div>';
     }
   }
 
   function renderParkings() {
     const grid = document.getElementById('parkingGrid');
-    if (parkings.length === 0) {
-      grid.innerHTML = '<div class="loading">No parking locations found.</div>';
-      return;
-    }
-    grid.innerHTML = parkings.map(p => `
-      <div class="parking-card" id="card-${p.id}">
-        <div class="parking-header">
-          <div>
-            <div class="parking-name">${p.name}</div>
-            <div class="parking-location">📍 ${p.location}</div>
+    grid.innerHTML = parkings.map(p => {
+      const isOpen = (p.status || 'Open') === 'Open';
+      return `
+        <div class="parking-card">
+          <div class="parking-header">
+            <div>
+              <div class="parking-name">${p.name || 'Unnamed Parking'}</div>
+              <div class="parking-location">📍 ${p.location || '—'}</div>
+            </div>
+            <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}" id="badge-${p.id}">
+              ${p.status || 'Open'}
+            </span>
           </div>
-          <span class="status-badge ${p.status === 'Open' ? 'status-open' : 'status-closed'}" id="badge-${p.id}">${p.status || 'Open'}</span>
+
+          <div class="parking-stats">
+            <div class="p-stat">
+              <div class="p-stat-num">${p._totalSlots}</div>
+              <div class="p-stat-label">Total Slots</div>
+            </div>
+            <div class="p-stat">
+              <div class="p-stat-num">${p._carSlots}</div>
+              <div class="p-stat-label">Car Slots</div>
+            </div>
+            <div class="p-stat">
+              <div class="p-stat-num">${p._bikeSlots}</div>
+              <div class="p-stat-label">Bike Slots</div>
+            </div>
+          </div>
+
+          <div class="parking-details">
+            <div class="detail-row">
+              <span class="detail-label">Car Price/hr</span>
+              <span class="detail-value" id="car-${p.id}">₹${p.carPrice || 0}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Bike Price/hr</span>
+              <span class="detail-value" id="bike-${p.id}">₹${p.bikePrice || 0}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Operating Hours</span>
+              <span class="detail-value" id="hours-${p.id}">${p.hours || 'Not set'}</span>
+            </div>
+            
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-edit" onclick="openModal(${p.id})">✏️ Edit Details</button>
+            <button class="btn-toggle ${isOpen ? '' : 'closed'}" id="toggleBtn-${p.id}" onclick="toggleStatus(${p.id})">
+              ${isOpen ? '🔴 Close Parking' : '🟢 Open Parking'}
+            </button>
+          </div>
         </div>
-        <div class="parking-stats">
-          <div class="p-stat"><div class="p-stat-num" id="total-${p.id}">${(p.totalCarSlots || 0) + (p.totalBikeSlots || 0)}</div><div class="p-stat-label">Total Slots</div></div>
-          <div class="p-stat"><div class="p-stat-num" id="carCount-${p.id}">${p.totalCarSlots || 0}</div><div class="p-stat-label">Car Slots</div></div>
-          <div class="p-stat"><div class="p-stat-num" id="bikeCount-${p.id}">${p.totalBikeSlots || 0}</div><div class="p-stat-label">Bike Slots</div></div>
-        </div>
-        <div class="parking-details">
-          <div class="detail-row"><span class="detail-label">Car Price/hr</span><span class="detail-value" id="car-${p.id}">₹${p.carPricePerHour || 0}</span></div>
-          <div class="detail-row"><span class="detail-label">Bike Price/hr</span><span class="detail-value" id="bike-${p.id}">₹${p.bikePricePerHour || 0}</span></div>
-          <div class="detail-row"><span class="detail-label">Operating Hours</span><span class="detail-value" id="hours-${p.id}">${p.operatingHours || 'Not set'}</span></div>
-        </div>
-        <div class="card-actions">
-          <button class="btn-edit" onclick="openModal(${p.id})">✏️ Edit Details</button>
-          <button class="btn-toggle ${p.status === 'Open' ? '' : 'closed'}" id="toggleBtn-${p.id}" onclick="toggleStatus(${p.id})">
-            ${p.status === 'Open' ? '🔴 Close Parking' : '🟢 Open Parking'}
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
-  // ── OPEN MODAL ──
   function openModal(parkingId) {
     const p = parkings.find(x => x.id === parkingId);
     if (!p) return;
     currentParkingId = parkingId;
-    document.getElementById('modalName').value = p.name;
-    document.getElementById('modalLocation').value = p.location;
-    document.getElementById('modalCar').value = p.carPricePerHour || '';
-    document.getElementById('modalBike').value = p.bikePricePerHour || '';
-    document.getElementById('modalHours').value = p.operatingHours || '';
+    document.getElementById('modalName').value     = p.name || '';
+    document.getElementById('modalLocation').value = p.location || '';
+    document.getElementById('modalCar').value      = p.carPrice || '';
+    document.getElementById('modalBike').value     = p.bikePrice || '';
+    document.getElementById('modalHours').value    = p.hours || '';
+    document.getElementById('modalStatus').value   = p.status || 'Open';
     document.getElementById('modalOverlay').classList.add('open');
   }
 
@@ -272,7 +308,6 @@
     currentParkingId = null;
   }
 
-  // ── SAVE TO BACKEND ──
   async function saveModal() {
     if (!currentParkingId) return;
     const btn = document.getElementById('btnSave');
@@ -280,11 +315,12 @@
     btn.textContent = 'Saving...';
 
     const body = {
-      name: document.getElementById('modalName').value,
-      location: document.getElementById('modalLocation').value,
-      carPricePerHour: parseFloat(document.getElementById('modalCar').value) || 0,
-      bikePricePerHour: parseFloat(document.getElementById('modalBike').value) || 0,
-      operatingHours: document.getElementById('modalHours').value
+      name:      document.getElementById('modalName').value,
+      location:  document.getElementById('modalLocation').value,
+      carPrice:  parseFloat(document.getElementById('modalCar').value)  || 0,
+      bikePrice: parseFloat(document.getElementById('modalBike').value) || 0,
+      hours:     document.getElementById('modalHours').value,
+      status:    document.getElementById('modalStatus').value
     };
 
     try {
@@ -293,21 +329,16 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+      if (!res.ok) throw new Error();
 
-      if (!res.ok) throw new Error('Save failed');
-
-      // Update local data
+      // Update local data and re-render
       const idx = parkings.findIndex(p => p.id === currentParkingId);
       if (idx !== -1) parkings[idx] = { ...parkings[idx], ...body };
 
-      // Update card UI without full reload
-      document.getElementById(`car-${currentParkingId}`).textContent = `₹${body.carPricePerHour}`;
-      document.getElementById(`bike-${currentParkingId}`).textContent = `₹${body.bikePricePerHour}`;
-      document.getElementById(`hours-${currentParkingId}`).textContent = body.operatingHours || 'Not set';
-
       closeModal();
+      renderParkings();
       showToast('✅ Parking details saved!', 'success');
-    } catch (err) {
+    } catch {
       showToast('❌ Failed to save. Try again.', 'error');
     } finally {
       btn.disabled = false;
@@ -315,11 +346,10 @@
     }
   }
 
-  // ── TOGGLE STATUS ──
   async function toggleStatus(parkingId) {
     const p = parkings.find(x => x.id === parkingId);
     if (!p) return;
-    const newStatus = p.status === 'Open' ? 'Closed' : 'Open';
+    const newStatus = (p.status || 'Open') === 'Open' ? 'Closed' : 'Open';
 
     try {
       const res = await fetch(`${API}/parkings/${parkingId}`, {
@@ -327,36 +357,19 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-
-      if (!res.ok) throw new Error('Toggle failed');
-
-      // Update local data
+      if (!res.ok) throw new Error();
       p.status = newStatus;
-
-      // Update UI
-      const badge = document.getElementById(`badge-${parkingId}`);
-      const btn = document.getElementById(`toggleBtn-${parkingId}`);
-      if (newStatus === 'Open') {
-        badge.textContent = 'Open';
-        badge.className = 'status-badge status-open';
-        btn.textContent = '🔴 Close Parking';
-        btn.classList.remove('closed');
-      } else {
-        badge.textContent = 'Closed';
-        badge.className = 'status-badge status-closed';
-        btn.textContent = '🟢 Open Parking';
-        btn.classList.add('closed');
-      }
+      renderParkings();
       showToast(`✅ Parking ${newStatus.toLowerCase()}!`, 'success');
-    } catch (err) {
+    } catch {
       showToast('❌ Failed to update status.', 'error');
     }
   }
 
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast ${type}`;
+    t.textContent   = msg;
+    t.className     = `toast ${type}`;
     t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 2500);
   }
@@ -365,7 +378,6 @@
     if (e.target === this) closeModal();
   });
 
-  // Load on page start
   loadParkings();
 </script>
 </body>

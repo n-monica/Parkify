@@ -77,13 +77,15 @@ public class ParkingController {
         Optional<Parking> existing = parkingService.getParkingById(id);
         if (existing.isPresent()) {
             Parking p = existing.get();
-            if (updatedParking.getName() != null) p.setName(updatedParking.getName());
-            if (updatedParking.getStatus() != null) p.setStatus(updatedParking.getStatus());
-            if (updatedParking.getHours() != null) p.setHours(updatedParking.getHours());
-            if (updatedParking.getCarPrice() != null) p.setCarPrice(updatedParking.getCarPrice());
+            if (updatedParking.getName() != null)      p.setName(updatedParking.getName());
+            if (updatedParking.getStatus() != null)    p.setStatus(updatedParking.getStatus());
+            if (updatedParking.getHours() != null)     p.setHours(updatedParking.getHours());
+            if (updatedParking.getCarPrice() != null)  p.setCarPrice(updatedParking.getCarPrice());
             if (updatedParking.getBikePrice() != null) p.setBikePrice(updatedParking.getBikePrice());
-            if (updatedParking.getLat() != null) p.setLat(updatedParking.getLat());
-            if (updatedParking.getLng() != null) p.setLng(updatedParking.getLng());
+            if (updatedParking.getLat() != null)       p.setLat(updatedParking.getLat());
+            if (updatedParking.getLng() != null)       p.setLng(updatedParking.getLng());
+            if (updatedParking.getCity() != null)      p.setCity(updatedParking.getCity());      // ← added
+            if (updatedParking.getLocation() != null)  p.setLocation(updatedParking.getLocation()); // ← added
             return ResponseEntity.ok(parkingService.saveParking(p));
         }
         return ResponseEntity.status(404).body("Parking not found");

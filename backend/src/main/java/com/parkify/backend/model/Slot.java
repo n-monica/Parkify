@@ -15,4 +15,5 @@ public class Slot {
     private Long parkingId;
     private String slotNumber;
     private String status;
+    private String type; // "car" or "bike"
 }

@@ -81,17 +81,29 @@
     .btn-update:hover { transform: translateY(-1px); }
     .btn-update:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
+    /* SLOT GRID */
     .slot-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-    .slot { width: 60px; height: 60px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; transition: transform 0.2s; }
+    .slot { width: 56px; height: 56px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; cursor: pointer; transition: transform 0.15s; border: none; }
+    .slot:hover { transform: scale(1.08); }
     .slot.available { background: linear-gradient(135deg, #34d399, #059669); }
-    .slot.booked { background: linear-gradient(135deg, #f87171, #dc2626); }
+    .slot.booked    { background: linear-gradient(135deg, #f87171, #dc2626); }
+    .slot-num { font-size: 13px; font-weight: 800; }
+    .slot-type { font-size: 9px; opacity: 0.85; margin-top: 1px; }
 
-    .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.2); display: none; z-index: 999; }
+    .slot-legend { display: flex; gap: 14px; margin-bottom: 12px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+    .legend-item { font-size: 11px; color: var(--text-mid); display: flex; align-items: center; }
+
+    .no-slots-msg { font-size: 13px; color: var(--text-light); padding: 12px 0; }
+
+    .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.2); display: none; z-index: 999; font-family: 'Nunito', sans-serif; }
     .toast.success { background: #059669; color: white; }
     .toast.error { background: #dc2626; color: white; }
 
     .status-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; margin-top: 10px; color: #059669; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+
+    .no-parking-msg { background: #fef9c3; border: 1px solid #fde68a; border-radius: 12px; padding: 16px; font-size: 13px; color: #92400e; margin-bottom: 20px; display: none; }
   </style>
 </head>
 <body>
@@ -125,12 +137,17 @@
   <div class="topbar">
     <div>
       <div class="page-title">Dashboard</div>
-      <div class="page-subtitle" id="welcomeMsg">Welcome back! Here's your parking overview.</div>
+      <div class="page-subtitle" id="welcomeMsg">Welcome back!</div>
     </div>
     <div class="topbar-right">
-      <div class="date-badge" id="dateBadge">📅 Loading...</div>
+      <div class="date-badge">📅 <span id="todayDate"></span></div>
       <a href="owner-login.html" class="logout-btn" onclick="logout()">Logout</a>
     </div>
+  </div>
+
+  <!-- No parking warning -->
+  <div class="no-parking-msg" id="noParkingMsg">
+    ⚠️ No parking registered yet. Please contact admin to link your parking, or add one from <b>My Parking</b>.
   </div>
 
   <!-- STATS -->
@@ -144,8 +161,8 @@
       <div><div class="stat-num" id="statSlots">—</div><div class="stat-label">Total Slots</div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-top"><div class="stat-icon orange">📋</div><span class="stat-badge up">Today</span></div>
-      <div><div class="stat-num" id="statBookings">—</div><div class="stat-label">Active Bookings</div></div>
+      <div class="stat-top"><div class="stat-icon orange">📋</div><span class="stat-badge up">All Time</span></div>
+      <div><div class="stat-num" id="statBookings">—</div><div class="stat-label">Total Bookings</div></div>
     </div>
     <div class="stat-card">
       <div class="stat-top"><div class="stat-icon purple">💰</div><span class="stat-badge up">Total</span></div>
@@ -156,11 +173,11 @@
   <!-- CHARTS -->
   <div class="charts-row">
     <div class="chart-card">
-      <div class="card-title">📈 Parking Status Overview</div>
+      <div class="card-title">📈 Pricing Overview (Car vs Bike)</div>
       <canvas id="bookingsChart" height="100"></canvas>
     </div>
     <div class="chart-card">
-      <div class="card-title">🚗 Slot Distribution</div>
+      <div class="card-title">🚗 Slot Status</div>
       <canvas id="slotChart" height="180"></canvas>
     </div>
   </div>
@@ -172,21 +189,21 @@
     <div class="update-card">
       <div class="card-title">💵 Update Pricing</div>
       <label class="form-label-sm">Select Parking</label>
-      <select class="parking-select" id="pricingParkingSelect">
+      <select class="parking-select" id="pricingParkingSelect" onchange="onPricingParkingChange()">
         <option value="">Loading...</option>
       </select>
       <div class="form-group">
         <label class="form-label-sm">Car Price per Hour (₹)</label>
         <div class="input-wrap">
           <div class="input-icon-sm">🚗</div>
-          <input type="number" id="carPrice" placeholder="e.g. 50">
+          <input type="number" id="carPrice" placeholder="e.g. 50" min="0">
         </div>
       </div>
       <div class="form-group">
         <label class="form-label-sm">Bike Price per Hour (₹)</label>
         <div class="input-wrap">
           <div class="input-icon-sm">🏍️</div>
-          <input type="number" id="bikePrice" placeholder="e.g. 20">
+          <input type="number" id="bikePrice" placeholder="e.g. 20" min="0">
         </div>
       </div>
       <button class="btn-update" id="pricingBtn" onclick="updatePricing()">Update Pricing</button>
@@ -196,7 +213,7 @@
     <div class="update-card">
       <div class="card-title">🔄 Parking Status</div>
       <label class="form-label-sm">Select Parking</label>
-      <select class="parking-select" id="statusParkingSelect">
+      <select class="parking-select" id="statusParkingSelect" onchange="onStatusParkingChange()">
         <option value="">Loading...</option>
       </select>
       <div class="form-group">
@@ -204,10 +221,10 @@
         <div class="input-wrap">
           <div class="input-icon-sm">🕐</div>
           <select id="parkingStatus">
-            <option>Open</option>
-            <option>Closed</option>
-            <option>Full</option>
-            <option>Maintenance</option>
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Full">Full</option>
+            <option value="Maintenance">Maintenance</option>
           </select>
         </div>
       </div>
@@ -224,11 +241,15 @@
       </div>
     </div>
 
-    <!-- Slot Overview -->
+    <!-- Slot Overview — REAL DATA -->
     <div class="update-card">
       <div class="card-title">📲 Slot Overview</div>
+      <div class="slot-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#34d399"></span>Available</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#f87171"></span>Booked</span>
+      </div>
       <div class="slot-grid" id="slotContainer">
-        <div style="color:#9ca3af;font-size:13px;">Loading slots...</div>
+        <div class="no-slots-msg">Loading slots...</div>
       </div>
     </div>
   </div>
@@ -238,159 +259,138 @@
 
 <script>
   const API = 'http://localhost:8080/api';
-  const ownerId = localStorage.getItem('ownerId') || 1;
-  const ownerName = localStorage.getItem('ownerName') || 'Owner';
 
-  // Set owner info in UI
+  // ── AUTH CHECK — redirect if not logged in ──
+  const ownerId = localStorage.getItem('ownerId');
+  const ownerName = localStorage.getItem('ownerName') || 'Owner';
+  if (!ownerId) { window.location.href = 'owner-login.html'; }
+
+  // Set owner info
   document.getElementById('sidebarName').textContent = ownerName;
   document.getElementById('sidebarAvatar').textContent = ownerName.charAt(0).toUpperCase();
   document.getElementById('welcomeMsg').textContent = `Welcome back, ${ownerName}! Here's your parking overview.`;
-  document.getElementById('dateBadge').textContent = '📅 ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   function logout() { localStorage.clear(); }
 
   let parkings = [];
+  let allSlots = [];
   let bookingsChart, slotChart;
 
-  // ── LOAD ALL DATA ──
+  // ── LOAD ALL ──
   async function loadDashboard() {
     await loadParkings();
-    await loadDashboardStats();
+    await loadStats();
   }
 
+  // ── LOAD PARKINGS ──
   async function loadParkings() {
     try {
       const res = await fetch(`${API}/parkings?ownerId=${ownerId}`);
+      if (!res.ok) throw new Error();
       parkings = await res.json();
 
-      // Populate parking selects
+      document.getElementById('statParkings').textContent = parkings.length;
+
+      if (parkings.length === 0) {
+        document.getElementById('noParkingMsg').style.display = 'block';
+        document.getElementById('pricingParkingSelect').innerHTML = '<option value="">No parkings found</option>';
+        document.getElementById('statusParkingSelect').innerHTML = '<option value="">No parkings found</option>';
+        document.getElementById('slotContainer').innerHTML = '<div class="no-slots-msg">No parkings linked to your account yet.</div>';
+        renderCharts([], 0, 0);
+        return;
+      }
+
+      // Populate selects
       const opts = parkings.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
       document.getElementById('pricingParkingSelect').innerHTML = opts;
       document.getElementById('statusParkingSelect').innerHTML = opts;
 
-      document.getElementById('statParkings').textContent = parkings.length;
+      // Pre-fill fields with first parking
+      fillPricingFields(parkings[0]);
+      fillStatusFields(parkings[0]);
 
-      // Fill pricing fields with first parking's values
-      if (parkings.length > 0) {
-        document.getElementById('carPrice').value = parkings[0].carPrice || '';
-        document.getElementById('bikePrice').value = parkings[0].bikePrice || '';
-        document.getElementById('hours').value = parkings[0].hours || '';
-      }
-
-      // Render slot overview
-      renderSlots();
-      renderCharts();
-    } catch (err) {
-      console.error('Failed to load parkings', err);
+    } catch {
+      showToast('❌ Could not load parkings', 'error');
     }
   }
 
-  // When user changes parking in pricing dropdown, update input fields
-  document.getElementById('pricingParkingSelect').addEventListener('change', function() {
-    const p = parkings.find(x => x.id == this.value);
-    if (p) {
-      document.getElementById('carPrice').value = p.carPrice || '';
-      document.getElementById('bikePrice').value = p.bikePrice || '';
+  // ── LOAD STATS (slots + revenue + bookings) ──
+  async function loadStats() {
+    let totalSlots = 0;
+    let totalRevenue = 0;
+    let totalBookings = 0;
+    let availableSlots = 0;
+    let bookedSlots = 0;
+    allSlots = [];
+
+    for (const p of parkings) {
+      // Slots
+      try {
+        const sr = await fetch(`${API}/slots?parkingId=${p.id}`);
+        if (sr.ok) {
+          const slots = await sr.json();
+          totalSlots += slots.length;
+          availableSlots += slots.filter(s => s.status === 'available').length;
+          bookedSlots += slots.filter(s => s.status === 'booked').length;
+          // Tag each slot with parking name for display
+          slots.forEach(s => s._parkingName = p.name);
+          allSlots = allSlots.concat(slots);
+        }
+      } catch {}
+
+      // Revenue + bookings
+      try {
+        const rr = await fetch(`${API}/parkings/${p.id}/revenue`);
+        if (rr.ok) {
+          const rd = await rr.json();
+          totalRevenue += rd.totalRevenue || 0;
+          totalBookings += rd.totalBookings || 0;
+        }
+      } catch {}
     }
-  });
 
-  // When user changes parking in status dropdown, update fields
-  document.getElementById('statusParkingSelect').addEventListener('change', function() {
-    const p = parkings.find(x => x.id == this.value);
-    if (p) {
-      document.getElementById('parkingStatus').value = p.status || 'Open';
-      document.getElementById('hours').value = p.hours || '';
-      updateStatusDisplay(p.status || 'Open');
-    }
-  });
+    document.getElementById('statSlots').textContent = totalSlots;
+    document.getElementById('statBookings').textContent = totalBookings;
+    document.getElementById('statRevenue').textContent = totalRevenue > 0 ? `₹${totalRevenue.toLocaleString()}` : '₹0';
 
-  async function loadDashboardStats() {
-    try {
-      // Load revenue for all parkings
-      let totalRevenue = 0;
-      let totalSlots = 0;
-      let totalBookings = 0;
-
-      for (const p of parkings) {
-        // FIX: fetch real slot count from /api/slots instead of using missing fields
-        try {
-          const slotRes = await fetch(`${API}/slots?parkingId=${p.id}`);
-          if (slotRes.ok) {
-            const slots = await slotRes.json();
-            totalSlots += slots.length;
-          }
-        } catch (e) { /* skip if slot fetch fails */ }
-
-        const revRes = await fetch(`${API}/parkings/${p.id}/revenue`);
-        const revData = await revRes.json();
-        totalRevenue += revData.totalRevenue || 0;
-      }
-
-      document.getElementById('statSlots').textContent = totalSlots || '—';
-      document.getElementById('statRevenue').textContent = totalRevenue > 0 ? `₹${totalRevenue.toLocaleString()}` : '₹0';
-      document.getElementById('statBookings').textContent = totalBookings || '—';
-    } catch (err) {
-      console.error('Failed to load stats', err);
-    }
+    renderCharts(parkings, availableSlots, bookedSlots);
+    renderSlotOverview(allSlots);
   }
 
-  function renderSlots() {
-    const container = document.getElementById('slotContainer');
-    if (parkings.length === 0) {
-      container.innerHTML = '<div style="color:#9ca3af;font-size:13px;">No slots found</div>';
-      return;
-    }
-    // Show sample slot overview based on parking data
-    container.innerHTML = '';
-    parkings.forEach(p => {
-      const total = (p.totalCarSlots || 4) + (p.totalBikeSlots || 4);
-      for (let i = 1; i <= Math.min(total, 8); i++) {
-        const div = document.createElement('div');
-        div.className = 'slot ' + (i % 3 === 0 ? 'booked' : 'available');
-        div.textContent = i <= (p.totalCarSlots || 4) ? `C${i}` : `B${i - (p.totalCarSlots || 4)}`;
-        container.appendChild(div);
-      }
-    });
+  // ── PRICING DROPDOWN CHANGE ──
+  function onPricingParkingChange() {
+    const id = document.getElementById('pricingParkingSelect').value;
+    const p = parkings.find(x => String(x.id) === String(id));
+    if (p) fillPricingFields(p);
   }
 
-  function renderCharts() {
-    const openCount = parkings.filter(p => p.status === 'Open').length;
-    const closedCount = parkings.length - openCount;
+  function fillPricingFields(p) {
+    document.getElementById('carPrice').value = p.carPrice ?? '';
+    document.getElementById('bikePrice').value = p.bikePrice ?? '';
+  }
 
-    const ctx1 = document.getElementById('bookingsChart').getContext('2d');
-    if (bookingsChart) bookingsChart.destroy();
-    bookingsChart = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: parkings.map(p => p.name.split(' ')[0]),
-        datasets: [
-          { label: 'Car Price/hr (₹)', data: parkings.map(p => p.carPrice || 0), backgroundColor: '#34d399', borderRadius: 6 },
-          { label: 'Bike Price/hr (₹)', data: parkings.map(p => p.bikePrice || 0), backgroundColor: '#6ee7b7', borderRadius: 6 }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
-      }
-    });
+  // ── STATUS DROPDOWN CHANGE ──
+  function onStatusParkingChange() {
+    const id = document.getElementById('statusParkingSelect').value;
+    const p = parkings.find(x => String(x.id) === String(id));
+    if (p) fillStatusFields(p);
+  }
 
-    const ctx2 = document.getElementById('slotChart').getContext('2d');
-    if (slotChart) slotChart.destroy();
-    slotChart = new Chart(ctx2, {
-      type: 'doughnut',
-      data: {
-        labels: ['Open Parkings', 'Closed Parkings'],
-        datasets: [{ data: [openCount || 1, closedCount], backgroundColor: ['#34d399', '#f87171'], borderWidth: 0, hoverOffset: 6 }]
-      },
-      options: { responsive: true, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } } }
-    });
+  function fillStatusFields(p) {
+    document.getElementById('parkingStatus').value = p.status || 'Open';
+    document.getElementById('hours').value = p.hours || '';
+    updateStatusDisplay(p.status || 'Open');
   }
 
   // ── UPDATE PRICING ──
   async function updatePricing() {
     const parkingId = document.getElementById('pricingParkingSelect').value;
     if (!parkingId) return showToast('❌ Select a parking first', 'error');
+    const carPrice = parseFloat(document.getElementById('carPrice').value);
+    const bikePrice = parseFloat(document.getElementById('bikePrice').value);
+    if (isNaN(carPrice) || isNaN(bikePrice)) return showToast('❌ Enter valid prices', 'error');
+
     const btn = document.getElementById('pricingBtn');
     btn.disabled = true; btn.textContent = 'Saving...';
 
@@ -398,16 +398,13 @@
       const res = await fetch(`${API}/parkings/${parkingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          carPrice: parseFloat(document.getElementById('carPrice').value) || 0,
-          bikePrice: parseFloat(document.getElementById('bikePrice').value) || 0
-        })
+        body: JSON.stringify({ carPrice, bikePrice })
       });
       if (!res.ok) throw new Error();
-      // Update local data
-      const p = parkings.find(x => x.id == parkingId);
-      if (p) { p.carPrice = parseFloat(document.getElementById('carPrice').value); p.bikePrice = parseFloat(document.getElementById('bikePrice').value); }
-      renderCharts();
+      // Update local cache
+      const p = parkings.find(x => String(x.id) === String(parkingId));
+      if (p) { p.carPrice = carPrice; p.bikePrice = bikePrice; }
+      renderCharts(parkings, 0, 0);
       showToast('✅ Pricing updated!', 'success');
     } catch {
       showToast('❌ Failed to update pricing', 'error');
@@ -420,10 +417,11 @@
   async function updateStatus() {
     const parkingId = document.getElementById('statusParkingSelect').value;
     if (!parkingId) return showToast('❌ Select a parking first', 'error');
+    const status = document.getElementById('parkingStatus').value;
+    const hours = document.getElementById('hours').value.trim();
+
     const btn = document.getElementById('statusBtn');
     btn.disabled = true; btn.textContent = 'Saving...';
-    const status = document.getElementById('parkingStatus').value;
-    const hours = document.getElementById('hours').value;
 
     try {
       const res = await fetch(`${API}/parkings/${parkingId}`, {
@@ -432,10 +430,9 @@
         body: JSON.stringify({ status, hours })
       });
       if (!res.ok) throw new Error();
-      const p = parkings.find(x => x.id == parkingId);
+      const p = parkings.find(x => String(x.id) === String(parkingId));
       if (p) { p.status = status; p.hours = hours; }
       updateStatusDisplay(status);
-      renderCharts();
       showToast('✅ Status updated!', 'success');
     } catch {
       showToast('❌ Failed to update status', 'error');
@@ -447,7 +444,68 @@
   function updateStatusDisplay(status) {
     const colors = { Open: '#10b981', Closed: '#ef4444', Full: '#f59e0b', Maintenance: '#6b7280' };
     document.getElementById('statusDisplay').innerHTML =
-      `<span class="dot" style="background:${colors[status] || '#10b981'}"></span> Parking is ${status}`;
+      `<span class="dot" style="background:${colors[status] || '#10b981'}"></span> Parking is <b>${status}</b>`;
+  }
+
+  // ── SLOT OVERVIEW — REAL DATA ──
+  function renderSlotOverview(slots) {
+    const container = document.getElementById('slotContainer');
+    if (!slots || slots.length === 0) {
+      container.innerHTML = '<div class="no-slots-msg">No slots added yet. Go to Slot Management to add slots.</div>';
+      return;
+    }
+    container.innerHTML = slots.slice(0, 16).map(s => {
+      const isBooked = s.status === 'booked';
+      return `
+        <div class="slot ${isBooked ? 'booked' : 'available'}" title="${s._parkingName} — ${s.slotNumber} (${s.status})">
+          <span class="slot-num">${s.slotNumber}</span>
+          <span class="slot-type">${isBooked ? 'Booked' : 'Free'}</span>
+        </div>`;
+    }).join('');
+
+    if (slots.length > 16) {
+      container.innerHTML += `<div style="font-size:11px;color:var(--text-light);width:100%;margin-top:6px">+${slots.length - 16} more — see Slot Management</div>`;
+    }
+  }
+
+  // ── CHARTS ──
+  function renderCharts(parkingList, availableSlots, bookedSlots) {
+    const ctx1 = document.getElementById('bookingsChart').getContext('2d');
+    if (bookingsChart) bookingsChart.destroy();
+    bookingsChart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: parkingList.length > 0 ? parkingList.map(p => p.name.split(' ')[0]) : ['No data'],
+        datasets: [
+          { label: 'Car ₹/hr', data: parkingList.map(p => p.carPrice || 0), backgroundColor: '#34d399', borderRadius: 6 },
+          { label: 'Bike ₹/hr', data: parkingList.map(p => p.bikePrice || 0), backgroundColor: '#6ee7b7', borderRadius: 6 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
+      }
+    });
+
+    const ctx2 = document.getElementById('slotChart').getContext('2d');
+    if (slotChart) slotChart.destroy();
+    const otherSlots = Math.max(0, (allSlots.length - availableSlots - bookedSlots));
+    slotChart = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Available', 'Booked', 'Other'],
+        datasets: [{
+          data: [availableSlots || 0, bookedSlots || 0, otherSlots || 0],
+          backgroundColor: ['#34d399', '#f87171', '#fbbf24'],
+          borderWidth: 0, hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true, cutout: '70%',
+        plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }
+      }
+    });
   }
 
   function showToast(msg, type = 'success') {
@@ -457,6 +515,38 @@
     t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 2500);
   }
+  async function approveOwner(id) {
+  try {
+    const approveRes = await fetch(`${API}/owners/${id}/approve`, { method: 'PUT' });
+    if (!approveRes.ok) throw new Error('Approval failed');
+    const ownerRes = await fetch(`${API}/owners/${id}`);
+    const owner = await ownerRes.json();
+    const parkingRes = await fetch(`${API}/parkings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: owner.parkingName,
+        location: owner.parkingAddress,
+        city: owner.city,
+        ownerId: owner.id,
+        status: 'Open',
+        carPrice: 0,
+        bikePrice: 0,
+        hours: '24/7'
+      })
+    });
+    if (parkingRes.ok) {
+      showToast('✅ Owner approved and parking created!', 'success');
+    } else {
+      showToast('✅ Owner approved! But parking creation failed — add manually.', 'success');
+    }
+    loadPendingOwners();
+  } catch {
+    showToast('❌ Failed to approve', 'error');
+  }
+}
+
+loadDashboard();
 
   loadDashboard();
 </script>
