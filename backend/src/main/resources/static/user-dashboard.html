@@ -17,7 +17,6 @@
     }
     body { font-family: 'Poppins', sans-serif; background: var(--bg); min-height: 100vh; }
 
-    /* ── TOPBAR ── */
     .topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 500;
       background: white; border-bottom: 1px solid var(--border);
@@ -36,21 +35,15 @@
     .logout-btn { font-size: 12px; font-weight: 600; color: var(--text-light); cursor: pointer; background: none; border: none; padding: 6px 10px; border-radius: 8px; transition: all 0.2s; }
     .logout-btn:hover { background: #fee2e2; color: var(--red); }
 
-    /* ── LAYOUT ── */
     .layout { display: flex; margin-top: 62px; height: calc(100vh - 62px); }
 
-    /* ── SIDEBAR ── */
     .sidebar {
       width: 380px; flex-shrink: 0;
       background: white; border-right: 1px solid var(--border);
       overflow-y: auto; display: flex; flex-direction: column;
     }
 
-    /* Current Booking Banner */
-    .current-booking-banner {
-      background: linear-gradient(135deg, #059669, #10b981);
-      padding: 16px 20px; display: none;
-    }
+    .current-booking-banner { background: linear-gradient(135deg, #059669, #10b981); padding: 16px 20px; display: none; }
     .current-booking-banner.show { display: block; }
     .cb-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     .cb-name  { font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; color: white; margin-bottom: 4px; }
@@ -58,47 +51,34 @@
     .cb-timer { font-family: 'Nunito', sans-serif; font-size: 22px; font-weight: 800; color: #a7f3d0; }
     .cb-timer.urgent { color: #fca5a5; animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-    .btn-checkout {
-      padding: 8px 16px; border-radius: 20px; border: 2px solid white;
-      background: transparent; color: white; font-size: 12px; font-weight: 700;
-      font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.2s;
-    }
+    .btn-checkout { padding: 8px 16px; border-radius: 20px; border: 2px solid white; background: transparent; color: white; font-size: 12px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.2s; }
     .btn-checkout:hover { background: white; color: var(--green); }
 
-    /* Search bar */
     .search-wrap { padding: 16px; border-bottom: 1px solid var(--border); }
-    .search-box {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 10px 14px;
-    }
+    .search-box { display: flex; align-items: center; gap: 10px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; }
     .search-box input { flex: 1; border: none; background: transparent; outline: none; font-size: 13px; font-family: 'Poppins', sans-serif; color: var(--text-dark); }
     .search-box input::placeholder { color: var(--text-light); }
     .locate-btn { padding: 8px 14px; border-radius: 10px; border: none; background: var(--green); color: white; font-size: 12px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; white-space: nowrap; }
 
-    /* Status filter */
     .filter-row { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
     .filter-chip { padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: 11px; font-weight: 700; color: var(--text-mid); cursor: pointer; transition: all 0.2s; font-family: 'Poppins', sans-serif; }
     .filter-chip.active { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
 
-    /* Parking list */
     .parking-list { flex: 1; padding: 12px; }
     .section-label { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; padding: 4px 4px 10px; }
 
-    .parking-card {
-      background: white; border: 1.5px solid var(--border);
-      border-radius: 14px; padding: 16px; margin-bottom: 10px;
-      cursor: pointer; transition: all 0.2s;
-    }
+    .parking-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
     .parking-card:hover { border-color: var(--green); box-shadow: 0 4px 16px rgba(22,163,74,0.12); transform: translateY(-1px); }
     .parking-card.selected { border-color: var(--green); background: #f0fdf4; box-shadow: 0 4px 16px rgba(22,163,74,0.15); }
+    .parking-card.recommended { border-color: #f59e0b; background: #fffbeb; }
+    .recommended-tag { display: inline-block; background: #f59e0b; color: white; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
     .pc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
     .pc-name { font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800; color: var(--text-dark); }
     .pc-loc  { font-size: 11px; color: var(--text-light); margin-top: 2px; }
     .avail-badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
-    .avail-badge.open   { background: #dcfce7; color: #16a34a; }
-    .avail-badge.full   { background: #fee2e2; color: #dc2626; }
-    .avail-badge.limited{ background: #fef9c3; color: #ca8a04; }
+    .avail-badge.open    { background: #dcfce7; color: #16a34a; }
+    .avail-badge.full    { background: #fee2e2; color: #dc2626; }
+    .avail-badge.limited { background: #fef9c3; color: #ca8a04; }
     .pc-stats { display: flex; gap: 8px; margin-bottom: 10px; }
     .pc-stat { flex: 1; background: var(--bg); border-radius: 8px; padding: 7px 10px; text-align: center; }
     .pc-stat-num { font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; color: var(--text-dark); }
@@ -106,33 +86,27 @@
     .pc-footer { display: flex; align-items: center; justify-content: space-between; }
     .pc-price { font-size: 12px; color: var(--text-mid); }
     .pc-price strong { color: var(--green-dark); }
-    .pc-dist  { font-size: 11px; color: var(--text-light); }
     .btn-book { padding: 7px 16px; border-radius: 20px; border: none; background: linear-gradient(135deg, #16a34a, #15803d); color: white; font-size: 11px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
+    .btn-route { padding: 7px 12px; border-radius: 20px; border: 1.5px solid var(--blue); background: white; color: var(--blue); font-size: 11px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
 
     .loading-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
     .loading-state .spin { font-size: 28px; display: block; margin-bottom: 10px; animation: spin 1.5s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── MAP ── */
     #map { flex: 1; z-index: 1; }
 
-    /* ── MODALS ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 600; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex; }
     .modal { background: white; border-radius: 20px; padding: 32px; width: 440px; max-width: 95vw; box-shadow: 0 24px 64px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
     .modal-title { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
     .modal-subtitle { font-size: 12px; color: var(--text-light); margin-bottom: 24px; }
 
-    /* Booking steps */
     .steps-row { display: flex; gap: 6px; margin-bottom: 24px; }
     .step-dot { flex: 1; height: 4px; border-radius: 4px; background: var(--border); transition: background 0.3s; }
     .step-dot.done { background: var(--green); }
 
     .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .choice-btn {
-      padding: 18px 12px; border-radius: 14px; border: 2px solid var(--border);
-      background: white; cursor: pointer; text-align: center; transition: all 0.2s;
-    }
+    .choice-btn { padding: 18px 12px; border-radius: 14px; border: 2px solid var(--border); background: white; cursor: pointer; text-align: center; transition: all 0.2s; }
     .choice-btn:hover { border-color: var(--green); background: var(--green-light); }
     .choice-btn.selected { border-color: var(--green); background: var(--green-light); }
     .choice-btn .choice-icon { font-size: 28px; display: block; margin-bottom: 6px; }
@@ -140,11 +114,7 @@
     .choice-btn .choice-price { font-size: 11px; color: var(--green-dark); font-weight: 600; }
 
     .hours-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-    .hour-btn {
-      padding: 10px 18px; border-radius: 10px; border: 2px solid var(--border);
-      background: white; cursor: pointer; font-size: 13px; font-weight: 700;
-      color: var(--text-mid); font-family: 'Poppins', sans-serif; transition: all 0.2s;
-    }
+    .hour-btn { padding: 10px 18px; border-radius: 10px; border: 2px solid var(--border); background: white; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-mid); font-family: 'Poppins', sans-serif; transition: all 0.2s; }
     .hour-btn:hover { border-color: var(--green); color: var(--green); }
     .hour-btn.selected { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
 
@@ -154,20 +124,14 @@
 
     .otp-info { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 12px; padding: 14px; margin-bottom: 20px; font-size: 12px; color: #92400e; line-height: 1.6; }
     .otp-input-wrap { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
-    .otp-digit {
-      width: 48px; height: 56px; border: 2px solid var(--border); border-radius: 12px;
-      text-align: center; font-size: 22px; font-weight: 800; font-family: 'Nunito', sans-serif;
-      color: var(--text-dark); outline: none; transition: all 0.2s;
-    }
+    .otp-digit { width: 48px; height: 56px; border: 2px solid var(--border); border-radius: 12px; text-align: center; font-size: 22px; font-weight: 800; font-family: 'Nunito', sans-serif; color: var(--text-dark); outline: none; transition: all 0.2s; }
     .otp-digit:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
 
     .modal-actions { display: flex; gap: 12px; }
-    .btn-cancel { flex: 1; padding: 12px; border-radius: 25px; border: 1.5px solid var(--border); background: white; color: var(--text-mid); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
+    .btn-cancel  { flex: 1; padding: 12px; border-radius: 25px; border: 1.5px solid var(--border); background: white; color: var(--text-mid); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
     .btn-confirm { flex: 2; padding: 12px; border-radius: 25px; border: none; background: linear-gradient(135deg, #16a34a, #15803d); color: white; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
     .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-nav { flex: 2; padding: 12px; border-radius: 25px; border: none; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(59,130,246,0.3); }
 
-    /* Toast */
     .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.2); display: none; z-index: 9999; }
     .toast.success { background: #059669; color: white; }
     .toast.error   { background: #dc2626; color: white; }
@@ -176,7 +140,6 @@
 </head>
 <body>
 
-<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="logo-circle"><span>P</span></div>
@@ -191,16 +154,15 @@
   </div>
 </div>
 
-<!-- LAYOUT -->
 <div class="layout">
-
-  <!-- SIDEBAR -->
   <div class="sidebar">
 
-    <!-- Current Booking Banner -->
     <div class="current-booking-banner" id="currentBookingBanner">
       <div class="cb-title">🟢 Active Booking</div>
-      <div class="cb-name"  id="cbParkingName">—</div>
+      <div class="cb-name" id="cbParkingName">—</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:4px;">
+  🚗 Slot: <b id="cbSlotNumber" style="color:#a7f3d0">—</b>
+</div>
       <div class="cb-row">
         <div>
           <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:2px;">Time Remaining</div>
@@ -210,7 +172,6 @@
       </div>
     </div>
 
-    <!-- Search -->
     <div class="search-wrap">
       <div class="search-box">
         <span>🔍</span>
@@ -219,7 +180,6 @@
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="filter-row">
       <button class="filter-chip active" onclick="setFilter('all', this)">All</button>
       <button class="filter-chip" onclick="setFilter('available', this)">Available</button>
@@ -227,7 +187,6 @@
       <button class="filter-chip" onclick="setFilter('full', this)">Full</button>
     </div>
 
-    <!-- Parking List -->
     <div class="parking-list">
       <div class="section-label" id="listLabel">📍 Nearby Parking</div>
       <div id="parkingListContainer">
@@ -239,11 +198,10 @@
     </div>
   </div>
 
-  <!-- MAP -->
   <div id="map"></div>
 </div>
 
-<!-- ══════════ BOOKING MODAL ══════════ -->
+<!-- BOOKING MODAL -->
 <div class="modal-overlay" id="bookingModal">
   <div class="modal">
     <div class="modal-title" id="bookingModalTitle">Book Parking</div>
@@ -257,7 +215,7 @@
   </div>
 </div>
 
-<!-- ══════════ CHECKIN OTP MODAL ══════════ -->
+<!-- CHECKIN OTP MODAL -->
 <div class="modal-overlay" id="checkinModal">
   <div class="modal">
     <div class="modal-title">🔐 Check-in OTP</div>
@@ -280,7 +238,7 @@
   </div>
 </div>
 
-<!-- ══════════ CHECKOUT OTP MODAL ══════════ -->
+<!-- CHECKOUT OTP MODAL -->
 <div class="modal-overlay" id="checkoutModal">
   <div class="modal">
     <div class="modal-title">🔓 Check-out OTP</div>
@@ -308,7 +266,6 @@
 <script>
   const API = 'http://localhost:8080/api';
 
-  // ── User from localStorage ──
   const userData  = JSON.parse(localStorage.getItem('userData') || '{}');
   const userId    = userData.id    || localStorage.getItem('userId')   || 1;
   const userName  = userData.name  || localStorage.getItem('userName') || 'User';
@@ -317,29 +274,48 @@
   document.getElementById('userName').textContent   = userName;
   document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
 
-  function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+  function logout() {
+    const activeBooking = localStorage.getItem('activeBooking');
+    localStorage.clear();
+    if (activeBooking) localStorage.setItem('activeBooking', activeBooking);
+    window.location.href = 'index.html';
+}
 
-  // ── State ──
   let map, userMarker, userLat, userLng;
   let allParkings    = [];
   let filteredList   = [];
   let currentFilter  = 'all';
   let selectedParking = null;
   let bookingStep    = 1;
-  let bookingData    = { vehicleType: null, hours: null, parking: null };
+  let bookingData = { vehicleType: null, hours: null, parking: null, vehicleNumber: '' };
   let activeBooking  = JSON.parse(localStorage.getItem('activeBooking') || 'null');
   let timerInterval  = null;
   let parkingMarkers = [];
+  let routeLine      = null;
+  let recommendedId  = null;
 
-  // ── Init Map ──
+  
+  // Normalize field names from backend
+  function normalizeParkingFields(p) {
+    return {
+      ...p,
+      carPricePerHour:  Number(p.carPrice  || p.carPrice  || p.car_price  || 0),
+      bikePricePerHour: Number(p.bikePrice || p.bikePrice || p.bike_price || 0),
+      lat: parseFloat(p.lat || p.latitude  || 0) || null,
+      lng: parseFloat(p.lng || p.longitude || 0) || null,
+    };
+  }
+
+  // Default to Saligramam, Chennai (where City Parking is)
+  const DEFAULT_LAT = 13.0850;
+  const DEFAULT_LNG = 80.2101;
+
   function initMap(lat, lng) {
     if (map) map.remove();
-    map = L.map('map').setView([lat, lng], 14);
+    map = L.map('map').setView([lat, lng], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors', maxZoom: 19
     }).addTo(map);
-
-    // User location marker
     const userIcon = L.divIcon({
       html: `<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,0.3)"></div>`,
       iconSize: [16, 16], iconAnchor: [8, 8], className: ''
@@ -348,20 +324,30 @@
       .addTo(map).bindPopup('📍 You are here').openPopup();
   }
 
-  // ── Parking map markers ──
   function addParkingMarkers(parkings) {
     parkingMarkers.forEach(m => map.removeLayer(m));
     parkingMarkers = [];
     parkings.forEach(p => {
       if (!p.lat || !p.lng) return;
       const color = getStatusColor(p);
-      const icon  = L.divIcon({
-        html: `<div style="background:${color};color:white;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:800;font-family:Nunito,sans-serif;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.2)">🅿️ ${p.availableSlots || 0}</div>`,
-        iconSize: [60, 28], iconAnchor: [30, 14], className: ''
+      const isRecommended = p.id === recommendedId;
+      const icon = L.divIcon({
+        html: `<div style="background:${color};color:white;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;font-family:Nunito,sans-serif;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.25);line-height:1.5;text-align:center;${isRecommended ? 'border:2px solid #f59e0b;' : ''}">
+                 ${isRecommended ? '⭐ ' : '🅿️ '}${p.availableSlots || 0} slots<br>
+                 <span style="font-size:9px;opacity:0.9;">₹${p.carPrice||0}/hr</span>
+               </div>`,
+        iconSize: [80, 42], iconAnchor: [40, 21], className: ''
       });
       const marker = L.marker([p.lat, p.lng], { icon })
         .addTo(map)
-        .bindPopup(`<b>${p.name}</b><br>${p.location}<br>Available: ${p.availableSlots || 0} slots`)
+        .bindPopup(`
+          <div style="font-family:Poppins,sans-serif;min-width:160px;">
+            ${isRecommended ? '<div style="background:#f59e0b;color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:6px;display:inline-block;">⭐ Recommended</div><br>' : ''}
+            <b style="font-size:14px;">${p.name}</b><br>
+            <span style="color:#6b7280;font-size:12px;">📍 ${p.location}</span><br><br>
+            <span style="color:#16a34a;font-weight:700;">🚗 ₹${p.carPrice||0}/hr &nbsp; 🏍️ ₹${p.bikePrice||0}/hr</span><br>
+            <span style="color:#4b5563;font-size:12px;">Available: ${p.availableSlots || 0} slots</span>
+          </div>`)
         .on('click', () => selectParking(p));
       parkingMarkers.push(marker);
     });
@@ -369,8 +355,8 @@
 
   function getStatusColor(p) {
     const avail = p.availableSlots || 0;
-    if (avail === 0)  return '#dc2626';
-    if (avail <= 3)   return '#f59e0b';
+    if (avail === 0) return '#dc2626';
+    if (avail <= 3)  return '#f59e0b';
     return '#16a34a';
   }
 
@@ -381,7 +367,6 @@
     return               { label: 'Open',    cls: 'open'    };
   }
 
-  // ── Locate user ──
   function locateMe() {
     if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
     showToast('Getting your location...', 'info');
@@ -390,52 +375,57 @@
         userLat = pos.coords.latitude;
         userLng = pos.coords.longitude;
         initMap(userLat, userLng);
-        loadNearbyParkings(userLat, userLng);
+        loadParkings();
       },
       err => {
-        // Fallback: use Bangalore coordinates for demo
-        userLat = 12.9716; userLng = 77.5946;
+        userLat = DEFAULT_LAT;
+        userLng = DEFAULT_LNG;
         initMap(userLat, userLng);
-        loadNearbyParkings(userLat, userLng);
-        showToast('Using default location (Bangalore)', 'info');
+        loadParkings();
+        showToast('Using Saligramam as default location', 'info');
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }
 
-  // ── Load nearby parkings from backend ──
-  async function loadNearbyParkings(lat, lng) {
+  async function loadParkings() {
     document.getElementById('parkingListContainer').innerHTML =
       `<div class="loading-state"><span class="spin">🔍</span>Finding nearby parking...</div>`;
     try {
-      // Try nearby endpoint first, fallback to all parkings
-      let res = await fetch(`${API}/parkings/nearby?lat=${lat}&lng=${lng}&radius=10`);
+      let res = await fetch(`${API}/parkings/nearby?lat=${userLat}&lng=${userLng}&radius=10`);
       if (!res.ok) res = await fetch(`${API}/parkings`);
       if (!res.ok) throw new Error();
       let parkings = await res.json();
 
-      // Fetch available slot counts for each parking
+      // Normalize field names
+      parkings = parkings.map(normalizeParkingFields);
+
+      // Fetch slot counts for each parking
       await Promise.all(parkings.map(async p => {
         try {
           const sr = await fetch(`${API}/slots?parkingId=${p.id}`);
           if (sr.ok) {
             const slots = await sr.json();
-            p.availableSlots = slots.filter(s =>
-              (s.status || s.slotStatus || 'available').toLowerCase() === 'available'
-            ).length;
             p.totalSlots = slots.length;
-            p.carSlots   = slots.filter(s => (s.type||s.slotType||s.vehicleType||'').toLowerCase().includes('car')).length;
-            p.bikeSlots  = slots.filter(s => (s.type||s.slotType||s.vehicleType||'').toLowerCase().includes('bike')).length;
+p.availableSlots = slots.filter(s =>
+    (s.status || '').toLowerCase() === 'available'
+).length;
+p.carSlots = slots.filter(s =>
+    (s.type || '').toLowerCase().includes('car') &&
+    (s.status || '').toLowerCase() === 'available'
+).length;
+p.bikeSlots = slots.filter(s =>
+    (s.type || '').toLowerCase().includes('bike') &&
+    (s.status || '').toLowerCase() === 'available'
+).length;
           }
         } catch { p.availableSlots = 0; p.totalSlots = 0; }
 
-        // Calculate distance if lat/lng available
-        if (p.lat && p.lng) {
-          p.distance = calcDistance(lat, lng, p.lat, p.lng);
-        }
+        // Calculate distance from user
+        if (p.lat && p.lng) p.distance = calcDistance(userLat, userLng, p.lat, p.lng);
       }));
 
-      // Sort: available first, then by distance
+      // Sort by availability then distance
       parkings.sort((a, b) => {
         if (a.availableSlots > 0 && b.availableSlots === 0) return -1;
         if (a.availableSlots === 0 && b.availableSlots > 0) return 1;
@@ -444,55 +434,69 @@
 
       allParkings  = parkings;
       filteredList = parkings;
-      renderParkingList(parkings);
-      addParkingMarkers(parkings);
-      showToast(`Found ${parkings.length} parking locations`, 'success');
+
+      // Auto recommend nearest available parking
+      const nearest = parkings.find(p => p.availableSlots > 0) || parkings[0];
+      if (nearest) {
+        recommendedId = nearest.id;
+        renderParkingList(parkings);
+        addParkingMarkers(parkings);
+        selectParking(nearest);
+        showToast(`⭐ Nearest: ${nearest.name}`, 'success');
+      } else {
+        renderParkingList(parkings);
+        addParkingMarkers(parkings);
+        showToast(`Found ${parkings.length} parking locations`, 'success');
+      }
+
     } catch {
       document.getElementById('parkingListContainer').innerHTML =
         `<div class="loading-state">❌ Could not load parkings.<br>Is your backend running?</div>`;
     }
   }
 
-  // ── Distance calculation (Haversine) ──
   function calcDistance(lat1, lng1, lat2, lng2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
-  // ── Render parking cards ──
   function renderParkingList(list) {
     const container = document.getElementById('parkingListContainer');
-    document.getElementById('listLabel').textContent = `📍 ${list.length} Parking Location${list.length !== 1 ? 's' : ''} Found`;
+    document.getElementById('listLabel').textContent =
+      `📍 ${list.length} Parking Location${list.length !== 1 ? 's' : ''} Found`;
 
     if (!list.length) {
-      container.innerHTML = `<div class="loading-state">😕 No parking found nearby.<br>Try expanding your search.</div>`;
+      container.innerHTML = `<div class="loading-state">😕 No parking found.</div>`;
       return;
     }
 
     container.innerHTML = list.map(p => {
       const { label, cls } = getStatusLabel(p);
-      const dist = p.distance ? `${p.distance.toFixed(1)} km away` : '';
+      const dist = p.distance ? `· ${p.distance.toFixed(1)} km away` : '';
+      const isRecommended = p.id === recommendedId;
       return `
-        <div class="parking-card" id="card-${p.id}" onclick="selectParking(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+        <div class="parking-card ${isRecommended ? 'recommended' : ''}" id="card-${p.id}"
+          onclick="selectParking(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+          ${isRecommended ? '<div class="recommended-tag">⭐ Nearest & Recommended</div>' : ''}
           <div class="pc-top">
             <div>
               <div class="pc-name">${p.name}</div>
-              <div class="pc-loc">📍 ${p.location || ''}</div>
+              <div class="pc-loc">📍 ${p.location || ''} ${dist}</div>
             </div>
             <span class="avail-badge ${cls}">${label}</span>
           </div>
           <div class="pc-stats">
-            <div class="pc-stat"><div class="pc-stat-num">${p.availableSlots || 0}</div><div class="pc-stat-lbl">Available</div></div>
-            <div class="pc-stat"><div class="pc-stat-num">${p.carSlots || 0}</div><div class="pc-stat-lbl">Car Slots</div></div>
-            <div class="pc-stat"><div class="pc-stat-num">${p.bikeSlots || 0}</div><div class="pc-stat-lbl">Bike Slots</div></div>
+            <div class="pc-stat"><div class="pc-stat-num">${p.availableSlots||0}</div><div class="pc-stat-lbl">Available</div></div>
+            <div class="pc-stat"><div class="pc-stat-num">${p.carSlots||0}</div><div class="pc-stat-lbl">Car Slots</div></div>
+            <div class="pc-stat"><div class="pc-stat-num">${p.bikeSlots||0}</div><div class="pc-stat-lbl">Bike Slots</div></div>
           </div>
           <div class="pc-footer">
-            <div class="pc-price">🚗 <strong>₹${p.carPricePerHour||0}/hr</strong> &nbsp; 🏍️ <strong>₹${p.bikePricePerHour||0}/hr</strong></div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span class="pc-dist">${dist}</span>
+            <div class="pc-price">🚗 <strong>₹${p.carPrice||0}/hr</strong> &nbsp; 🏍️ <strong>₹${p.bikePrice||0}/hr</strong></div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button class="btn-route" onclick="event.stopPropagation();navigateToParking(${JSON.stringify(p).replace(/"/g,'&quot;')})">🗺️ Route</button>
               ${p.availableSlots > 0
                 ? `<button class="btn-book" onclick="event.stopPropagation();openBooking(${JSON.stringify(p).replace(/"/g,'&quot;')})">Book →</button>`
                 : `<span style="font-size:11px;color:#dc2626;font-weight:700;">Full</span>`}
@@ -502,7 +506,19 @@
     }).join('');
   }
 
-  // ── Filter ──
+  // Show route on map
+  function showRouteOnMap(p) {
+    if (!p.lat || !p.lng) { showToast('No coordinates for this parking', 'error'); return; }
+    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+    routeLine = L.polyline(
+      [[userLat, userLng], [p.lat, p.lng]],
+      { color: '#3b82f6', weight: 4, dashArray: '8,8', opacity: 0.85 }
+    ).addTo(map);
+    map.fitBounds([[userLat, userLng], [p.lat, p.lng]], { padding: [60, 60] });
+    selectParking(p);
+    showToast(`📍 Route to ${p.name} shown on map`, 'info');
+  }
+
   function setFilter(filter, btn) {
     currentFilter = filter;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -526,7 +542,6 @@
     addParkingMarkers(filteredList);
   }
 
-  // ── Select parking ──
   function selectParking(p) {
     selectedParking = p;
     document.querySelectorAll('.parking-card').forEach(c => c.classList.remove('selected'));
@@ -535,14 +550,11 @@
     if (p.lat && p.lng && map) map.flyTo([p.lat, p.lng], 16);
   }
 
-  // ══════════════════════════════════════
-  //   BOOKING FLOW
-  // ══════════════════════════════════════
   function openBooking(p) {
     if (activeBooking) { showToast('You already have an active booking!', 'error'); return; }
     selectedParking = p;
-    bookingData     = { vehicleType: null, hours: null, parking: p };
-    bookingStep     = 1;
+    bookingData = { vehicleType: null, hours: null, parking: p };
+    bookingStep = 1;
     renderBookingStep();
     document.getElementById('bookingModal').classList.add('open');
   }
@@ -566,41 +578,49 @@
           <button class="choice-btn ${bookingData.vehicleType==='car'?'selected':''}" onclick="selectVehicle('car')">
             <span class="choice-icon">🚗</span>
             <div class="choice-label">Car</div>
-            <div class="choice-price">₹${p.carPricePerHour||0}/hr</div>
+            <div class="choice-price">₹${p.carPrice||0}/hr</div>
           </button>
           <button class="choice-btn ${bookingData.vehicleType==='bike'?'selected':''}" onclick="selectVehicle('bike')">
             <span class="choice-icon">🏍️</span>
             <div class="choice-label">Bike</div>
-            <div class="choice-price">₹${p.bikePricePerHour||0}/hr</div>
+            <div class="choice-price">₹${p.bikePrice||0}/hr</div>
           </button>
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" onclick="closeModal('bookingModal')">Cancel</button>
-          <button class="btn-confirm" onclick="nextStep()" ${!bookingData.vehicleType?'disabled':''} id="btnNext1">Next →</button>
+          <button class="btn-confirm" onclick="nextStep()" ${!bookingData.vehicleType?'disabled':''}>Next →</button>
         </div>`;
 
     } else if (bookingStep === 2) {
-      const rate = bookingData.vehicleType === 'car' ? (p.carPricePerHour||0) : (p.bikePricePerHour||0);
+      const rate = bookingData.vehicleType === 'car' ? (p.carPrice||0) : (p.bikePrice||0);
       body.innerHTML = `
         <div class="hours-grid">
-          ${[1,2,3,4,5,6,8,12].map(h => `
-            <button class="hour-btn ${bookingData.hours===h?'selected':''}" onclick="selectHours(${h})">${h} hr</button>
-          `).join('')}
+          ${[1,2,3,4,5,6,8,12].map(h =>
+            `<button class="hour-btn ${bookingData.hours===h?'selected':''}" onclick="selectHours(${h})">${h} hr</button>`
+          ).join('')}
         </div>
         ${bookingData.hours ? `
+           <div style="margin-bottom:16px;">
+  <label style="font-size:12px;font-weight:600;color:#4b5563;display:block;margin-bottom:6px;">🚘 Vehicle Number</label>
+  <input type="text" id="vehicleNumberInput" value="${bookingData.vehicleNumber||''}"
+    placeholder="e.g. TN01AB1234"
+    oninput="bookingData.vehicleNumber=this.value.toUpperCase()"
+    style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;"
+    onfocus="this.style.borderColor='#16a34a'" onblur="this.style.borderColor='#e5e7eb'">
+</div>
           <div class="price-summary">
-            <div class="price-row"><span>Vehicle</span><span>${bookingData.vehicleType === 'car' ? '🚗 Car' : '🏍️ Bike'}</span></div>
+            <div class="price-row"><span>Vehicle</span><span>${bookingData.vehicleType==='car'?'🚗 Car':'🏍️ Bike'}</span></div>
             <div class="price-row"><span>Duration</span><span>${bookingData.hours} hour${bookingData.hours>1?'s':''}</span></div>
             <div class="price-row"><span>Rate</span><span>₹${rate}/hr</span></div>
-            <div class="price-row"><span>Total Amount</span><span>₹${rate * bookingData.hours}</span></div>
+            <div class="price-row"><span>Total Amount</span><span>₹${rate*bookingData.hours}</span></div>
           </div>` : ''}
         <div class="modal-actions">
           <button class="btn-cancel" onclick="bookingStep=1;renderBookingStep()">← Back</button>
-          <button class="btn-confirm" onclick="nextStep()" ${!bookingData.hours?'disabled':''} id="btnNext2">Next →</button>
+          <button class="btn-confirm" onclick="nextStep()" ${!bookingData.hours?'disabled':''}>Next →</button>
         </div>`;
 
     } else if (bookingStep === 3) {
-      const rate  = bookingData.vehicleType === 'car' ? (p.carPricePerHour||0) : (p.bikePricePerHour||0);
+      const rate  = bookingData.vehicleType === 'car' ? (p.carPrice||0) : (p.bikePrice||0);
       const total = rate * bookingData.hours;
       body.innerHTML = `
         <div class="price-summary">
@@ -611,59 +631,44 @@
           <div class="price-row"><span>Total Amount</span><span>₹${total}</span></div>
         </div>
         <div class="otp-info">
-          📱 After confirming, an OTP will be sent to <strong>${userPhone || 'your phone'}</strong>.<br>
+          📱 After confirming, an OTP will be sent to <strong>${userPhone||'your phone'}</strong>.<br>
           Use it to <strong>check in</strong> when you arrive at the parking.
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" onclick="bookingStep=2;renderBookingStep()">← Back</button>
-          <button class="btn-nav"    onclick="navigateToParking()">🗺️ Navigate</button>
           <button class="btn-confirm" onclick="confirmBooking()" id="btnConfirm">Confirm & Get OTP</button>
         </div>`;
     }
   }
 
-  function selectVehicle(type) {
-    bookingData.vehicleType = type;
-    renderBookingStep();
-  }
-
-  function selectHours(h) {
-    bookingData.hours = h;
-    renderBookingStep();
-  }
-
+  function selectVehicle(type) { bookingData.vehicleType = type; renderBookingStep(); }
+  function selectHours(h)      { bookingData.hours = h;          renderBookingStep(); }
   function nextStep() {
-    bookingStep++;
-    renderBookingStep();
+  if (bookingStep === 2 && !bookingData.vehicleNumber.trim()) {
+    showToast('🚘 Please enter your vehicle number!', 'error');
+    return;
   }
+  bookingStep++;
+  renderBookingStep();
+}
 
-  // ── Navigate to parking via Google Maps ──
-  function navigateToParking() {
-    const p = bookingData.parking;
-    if (p.lat && p.lng) {
-      window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`, '_blank');
-    } else {
-      window.open(`https://www.google.com/maps/search/${encodeURIComponent(p.name + ' ' + (p.location||''))}`, '_blank');
-    }
-  }
-
-  // ── Confirm booking → call backend ──
   async function confirmBooking() {
     const btn = document.getElementById('btnConfirm');
-    btn.disabled    = true;
-    btn.textContent = 'Booking...';
+    btn.disabled = true; btn.textContent = 'Booking...';
 
     const p     = bookingData.parking;
-    const rate  = bookingData.vehicleType === 'car' ? (p.carPricePerHour||0) : (p.bikePricePerHour||0);
+    const rate  = bookingData.vehicleType === 'car' ? (p.carPrice||0) : (p.bikePrice||0);
     const total = rate * bookingData.hours;
 
     const payload = {
-      userId,
-      parkingId:   p.id,
-      vehicleType: bookingData.vehicleType,
-      hours:       bookingData.hours,
-      totalAmount: total,
-      userPhone
+      parkingId:    p.id,
+      customerName: userName,
+      vehicleNumber: bookingData.vehicleNumber,
+      type:         bookingData.vehicleType,
+      duration:     String(bookingData.hours) + ' hrs',
+      amount:       total,
+      status:       'confirmed',
+      bookingDate:  new Date().toISOString().split('T')[0]
     };
 
     try {
@@ -671,121 +676,133 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const errMsg = await res.text();
+        showToast(`❌ ${errMsg}`, 'error');
+        btn.disabled = false; btn.textContent = 'Confirm & Get OTP';
+        return;
+      }
       const booking = await res.json();
 
-      // Save booking locally
-      activeBooking = { ...booking, parkingName: p.name, hours: bookingData.hours, totalAmount: total };
+      // Fetch slot number
+      let slotNumber = '—';
+      if (booking.slotId) {
+        try {
+          const slotRes = await fetch(`${API}/slots/${booking.slotId}`);
+          const slot = await slotRes.json();
+          slotNumber = slot.slotNumber;
+        } catch {}
+      }
+
+      activeBooking = {
+    ...booking,
+    parkingName: p.name,
+    hours: bookingData.hours,
+    totalAmount: total,
+    parkingLat: p.lat,
+    parkingLng: p.lng,
+    slotNumber,
+    userId: userId  // ✅ save userId
+};
       localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
-
       closeModal('bookingModal');
-      showToast('✅ Booking confirmed! OTP sent to your phone.', 'success');
-
-      // Open check-in OTP modal
+      showToast(`✅ Booking confirmed! Your slot is ${slotNumber}`, 'success');
       setTimeout(() => {
-        document.getElementById('checkinSubtitle').textContent = `Enter OTP for ${p.name}`;
+        document.getElementById('checkinSubtitle').textContent = `Enter OTP for ${p.name} — Slot ${slotNumber}`;
         document.getElementById('checkinModal').classList.add('open');
       }, 800);
+
+      // Refresh parking list to show updated slot counts
+      // Refresh parking list after short delay to show updated slot counts
+      setTimeout(() => loadParkings(), 2000);
 
     } catch {
-      // For UI testing when backend not ready — simulate booking
-      const fakeBooking = {
-        id: Date.now(), parkingId: p.id, parkingName: p.name,
-        vehicleType: bookingData.vehicleType, hours: bookingData.hours,
-        totalAmount: total, checkInOtp: '123456', checkOutOtp: '654321',
-        status: 'pending'
-      };
-      activeBooking = fakeBooking;
-      localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
-      closeModal('bookingModal');
-      showToast('✅ Booking confirmed! OTP: 123456 (demo)', 'success');
-      setTimeout(() => {
-        document.getElementById('checkinSubtitle').textContent = `Enter OTP for ${p.name} (Demo: 123456)`;
-        document.getElementById('checkinModal').classList.add('open');
-      }, 800);
+      showToast('❌ Could not connect to server.', 'error');
     }
 
-    btn.disabled    = false;
-    btn.textContent = 'Confirm & Get OTP';
+    btn.disabled = false; btn.textContent = 'Confirm & Get OTP';
   }
-
-  // ── Check-in OTP ──
   function getOtpValue(wrapId) {
     return Array.from(document.querySelectorAll(`#${wrapId} .otp-digit`)).map(i => i.value).join('');
   }
 
   async function confirmCheckin() {
-    const otp = getOtpValue('checkinOtpWrap');
-    if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
+  const otp = getOtpValue('checkinOtpWrap');
+  if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
 
-    try {
-      const res = await fetch(`${API}/bookings/${activeBooking.id}/checkin`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp })
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      // Demo mode: accept any 6-digit OTP
-    }
+  // Call backend checkin
+  try {
+    await fetch(`${API}/bookings/${activeBooking.id}/checkin`, { method: 'POST' });
+  } catch {}
 
-    // Start timer
-    activeBooking.checkedIn   = true;
-    activeBooking.checkinTime = Date.now();
-    activeBooking.endTime     = Date.now() + activeBooking.hours * 60 * 60 * 1000;
-    localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
+  activeBooking.checkedIn   = true;
+  activeBooking.checkinTime = Date.now();
+  activeBooking.endTime     = Date.now() + bookingData.hours * 60 * 60 * 1000;
+  localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
 
-    closeModal('checkinModal');
-    showToast('🟢 Checked in! Your session has started.', 'success');
-    showCurrentBooking();
-  }
+  closeModal('checkinModal');
+  showToast('🟢 Checked in! Your session has started.', 'success');
+  showCurrentBooking();
+  loadParkings(); // refresh slot counts
+}
 
-  // ── Checkout ──
-  function openCheckout() {
-    document.getElementById('checkoutModal').classList.add('open');
-  }
+  function openCheckout() { document.getElementById('checkoutModal').classList.add('open'); }
 
   async function confirmCheckout() {
-    const otp = getOtpValue('checkoutOtpWrap');
-    if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
+  const otp = getOtpValue('checkoutOtpWrap');
+  if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
 
-    try {
-      const res = await fetch(`${API}/bookings/${activeBooking.id}/checkout`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp })
-      });
-      if (!res.ok) throw new Error();
-    } catch {
-      // Demo mode: accept any OTP
+  // Call backend checkout — frees the slot automatically
+  try {
+    await fetch(`${API}/bookings/${activeBooking.id}/checkout`, { method: 'POST' });
+  } catch {}
+
+  clearInterval(timerInterval);
+  activeBooking = null;
+  localStorage.removeItem('activeBooking');
+  closeModal('checkoutModal');
+  document.getElementById('currentBookingBanner').classList.remove('show');
+  showToast('✅ Checked out! Thanks for using Parkify.', 'success');
+
+  // Reload parkings — slot count will increase
+  setTimeout(() => loadParkings(), 2000);
+}
+
+function showCurrentBooking() {
+    if (!activeBooking || !activeBooking.checkedIn) return;
+    document.getElementById('currentBookingBanner').classList.add('show');
+    document.getElementById('cbParkingName').textContent = activeBooking.parkingName || 'Parking';
+    document.getElementById('cbSlotNumber').textContent  = activeBooking.slotNumber || '—';
+
+    // Fix endTime if missing after page reload
+    if (!activeBooking.endTime) {
+        const hours = Number(activeBooking.hours || (activeBooking.duration || '1').replace(' hrs','') || 1);
+        activeBooking.endTime = activeBooking.checkinTime + (hours * 60 * 60 * 1000);
+        localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
     }
 
-    // Clear booking
-    clearInterval(timerInterval);
-    activeBooking = null;
-    localStorage.removeItem('activeBooking');
-    closeModal('checkoutModal');
-    document.getElementById('currentBookingBanner').classList.remove('show');
-    showToast('✅ Checked out! Thanks for using Parkify.', 'success');
-
-    // Reload parkings to reflect freed slot
-    if (userLat && userLng) loadNearbyParkings(userLat, userLng);
-  }
-
-  // ── Current Booking Banner + Timer ──
-  function showCurrentBooking() {
-    if (!activeBooking || !activeBooking.checkedIn) return;
-    const banner = document.getElementById('currentBookingBanner');
-    banner.classList.add('show');
-    document.getElementById('cbParkingName').textContent = activeBooking.parkingName || 'Parking';
     startTimer();
-  }
+
+    if (activeBooking.parkingLat && activeBooking.parkingLng && map) {
+        if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+        routeLine = L.polyline(
+            [[userLat, userLng], [activeBooking.parkingLat, activeBooking.parkingLng]],
+            { color: '#16a34a', weight: 5, dashArray: '8,8', opacity: 0.9 }
+        ).addTo(map);
+        map.fitBounds(
+            [[userLat, userLng], [activeBooking.parkingLat, activeBooking.parkingLng]],
+            { padding: [60, 60] }
+        );
+    }
+}
 
   function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       const remaining = activeBooking.endTime - Date.now();
-      const timerEl   = document.getElementById('cbTimer');
+      const timerEl = document.getElementById('cbTimer');
       if (remaining <= 0) {
-        timerEl.textContent = '00:00';
+        timerEl.textContent = '00:00:00';
         timerEl.classList.add('urgent');
         clearInterval(timerInterval);
         showToast('⏰ Your parking time is up! Please checkout.', 'error');
@@ -795,40 +812,42 @@
       const mins = Math.floor((remaining % 3600000) / 60000);
       const secs = Math.floor((remaining % 60000) / 1000);
       timerEl.textContent = `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-      timerEl.classList.toggle('urgent', remaining < 10 * 60 * 1000); // red when < 10 min
+      timerEl.classList.toggle('urgent', remaining < 600000);
     }, 1000);
   }
 
-  // ── OTP input auto-advance ──
   function otpNext(input, wrapId) {
     input.value = input.value.replace(/[^0-9]/g, '');
-    if (input.value && input.nextElementSibling) {
-      input.nextElementSibling.focus();
-    }
+    if (input.value && input.nextElementSibling) input.nextElementSibling.focus();
   }
 
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
-  }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
-    t.textContent   = msg;
-    t.className     = `toast ${type}`;
-    t.style.display = 'block';
+    t.textContent = msg; t.className = `toast ${type}`; t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 3500);
   }
 
-  // ── Start ──
-  // Init map at default location first
-  userLat = 12.9716; userLng = 77.5946;
+  // Start
+  userLat = DEFAULT_LAT; userLng = DEFAULT_LNG;
   initMap(userLat, userLng);
-
-  // Auto-locate
   locateMe();
-
-  // Restore active booking if exists
-  if (activeBooking && activeBooking.checkedIn) showCurrentBooking();
+  if (activeBooking && activeBooking.checkedIn && String(activeBooking.userId) === String(userId)) {
+    showCurrentBooking();
+}
+  function navigateToParking(p) {
+  if (p.lat && p.lng) {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`, '_blank');
+  } else {
+    const address = encodeURIComponent(`${p.name} ${p.location || ''}`);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
+  }
+  // Auto refresh slot counts every 15 seconds
+setInterval(() => {
+  loadParkings();
+}, 15000);
+}
 </script>
 </body>
 </html>

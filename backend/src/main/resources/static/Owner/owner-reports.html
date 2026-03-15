@@ -152,13 +152,14 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>Booking ID</th>
-          <th>Vehicle No.</th>
-          <th>Parking</th>
-          <th>Start Time</th>
-          <th>End Time</th>
-          <th>Amount</th>
-          <th>Status</th>
+<th>Booking ID</th>
+<th>Customer</th>
+<th>Vehicle No.</th>
+<th>Parking</th>
+<th>Start Time</th>
+<th>End Time</th>
+<th>Amount</th>
+<th>Status</th>
         </tr>
       </thead>
       <tbody id="bookingsTableBody">
@@ -232,35 +233,39 @@
   }
 
   function updateStats() {
-    const total = allBookings.reduce((sum, b) => sum + (b.amountPaid || 0), 0);
-    const completed = allBookings.filter(b => b.status === 'Completed').length;
-    const cancelled = allBookings.filter(b => b.status === 'Cancelled').length;
+    const total = allBookings.reduce((sum, b) => sum + (b.actualAmount || b.amount || 0), 0);
+    const completed = allBookings.filter(b => b.status?.toLowerCase() === 'completed').length;
+    const cancelled = allBookings.filter(b => b.status?.toLowerCase() === 'cancelled').length;
 
     document.getElementById('statRevenue').textContent = `₹${total.toLocaleString()}`;
     document.getElementById('statBookings').textContent = allBookings.length;
     document.getElementById('statCompleted').textContent = completed;
     document.getElementById('statCancelled').textContent = cancelled;
-  }
-
-  function renderTable(bookings) {
+}
+function renderTable(bookings) {
     const tbody = document.getElementById('bookingsTableBody');
     if (bookings.length === 0) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No bookings found</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No bookings found</td></tr>';
       return;
     }
-    tbody.innerHTML = bookings.slice(0, 20).map((b, i) => `
-      <tr>
-        <td>${i + 1}</td>
-        <td><b>#BK${b.id}</b></td>
-        <td>${b.vehicleNumber || '—'}</td>
-        <td>${b._parkingName || '—'}</td>
-        <td>${b.startTime ? new Date(b.startTime).toLocaleString() : '—'}</td>
-        <td>${b.endTime ? new Date(b.endTime).toLocaleString() : 'Ongoing'}</td>
-        <td>₹${b.amountPaid || 0}</td>
-        <td><span class="status-badge s-${b.status || 'Pending'}">${b.status || 'Pending'}</span></td>
-      </tr>
-    `).join('');
-  }
+    tbody.innerHTML = bookings.slice(0, 20).map((b, i) => {
+      const status = b.status || 'pending';
+      const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+      return `
+        <tr>
+          <td>${i + 1}</td>
+          <td><b>#BK${b.id}</b></td>
+          <td>${b.customerName || '—'}</td>
+          <td>${b.vehicleNumber || '—'}</td>
+          <td>${b._parkingName || '—'}</td>
+          <td>${b.checkInTime ? new Date(b.checkInTime).toLocaleString() : '—'}</td>
+          <td>${b.checkOutTime ? new Date(b.checkOutTime).toLocaleString() : 'Ongoing'}</td>
+          <td>₹${b.actualAmount || b.amount || 0}</td>
+          <td><span class="status-badge s-${statusLabel}">${statusLabel}</span></td>
+        </tr>
+      `;
+    }).join('');
+}
 
   function filterBookings() {
     const parkingId = document.getElementById('parkingFilter').value;
@@ -271,10 +276,10 @@
   }
 
   function renderCharts(revenues) {
-    const completed = allBookings.filter(b => b.status === 'Completed').length;
-    const active = allBookings.filter(b => b.status === 'Active' || b.status === 'Confirmed').length;
-    const cancelled = allBookings.filter(b => b.status === 'Cancelled').length;
-    const pending = allBookings.length - completed - active - cancelled;
+    const completed = allBookings.filter(b => b.status?.toLowerCase() === 'completed').length;
+const active    = allBookings.filter(b => b.status?.toLowerCase() === 'active' || b.status?.toLowerCase() === 'confirmed').length;
+const cancelled = allBookings.filter(b => b.status?.toLowerCase() === 'cancelled').length;
+const pending   = allBookings.length - completed - active - cancelled;
 
     if (revenueChart) revenueChart.destroy();
     revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
