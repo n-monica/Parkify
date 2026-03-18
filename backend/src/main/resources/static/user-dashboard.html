@@ -160,9 +160,9 @@
     <div class="current-booking-banner" id="currentBookingBanner">
       <div class="cb-title">🟢 Active Booking</div>
       <div class="cb-name" id="cbParkingName">—</div>
-<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:4px;">
-  🚗 Slot: <b id="cbSlotNumber" style="color:#a7f3d0">—</b>
-</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:4px;">
+        🚗 Slot: <b id="cbSlotNumber" style="color:#a7f3d0">—</b>
+      </div>
       <div class="cb-row">
         <div>
           <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:2px;">Time Remaining</div>
@@ -233,7 +233,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn-cancel"  onclick="closeModal('checkinModal')">Cancel</button>
-      <button class="btn-confirm" onclick="confirmCheckin()">✅ Confirm Check-in</button>
+      <button class="btn-confirm" id="btnCheckin" onclick="confirmCheckin()">✅ Confirm Check-in</button>
     </div>
   </div>
 </div>
@@ -242,9 +242,15 @@
 <div class="modal-overlay" id="checkoutModal">
   <div class="modal">
     <div class="modal-title">🔓 Check-out OTP</div>
-    <div class="modal-subtitle">Enter the OTP sent to your phone to end your session</div>
-    <div class="otp-info">
-      📱 Enter your check-out OTP to free the slot. Your session will end and the slot will be marked available.
+    <div class="modal-subtitle">Enter the OTP below to end your session</div>
+    <!-- Inline OTP display for checkout -->
+    <div id="checkoutOtpDisplay" style="display:none;background:linear-gradient(135deg,#16a34a,#15803d);border-radius:14px;padding:18px;text-align:center;margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">🔐 Your Checkout OTP</div>
+      <div id="checkoutOtpValue" style="font-family:'Nunito',sans-serif;font-size:38px;font-weight:800;color:white;letter-spacing:10px;">——</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:6px;">Enter this below to complete checkout</div>
+    </div>
+    <div class="otp-info" id="checkoutOtpInfo">
+      📱 Generating your checkout OTP...
     </div>
     <div class="otp-input-wrap" id="checkoutOtpWrap">
       <input class="otp-digit" maxlength="1" oninput="otpNext(this,'checkoutOtpWrap')">
@@ -256,12 +262,20 @@
     </div>
     <div class="modal-actions">
       <button class="btn-cancel"  onclick="closeModal('checkoutModal')">Cancel</button>
-      <button class="btn-confirm" onclick="confirmCheckout()">🔓 Confirm Checkout</button>
+      <button class="btn-confirm" id="btnCheckout" onclick="confirmCheckout()">🔓 Confirm Checkout</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- OTP DISPLAY BANNER -->
+<div id="otpDisplay" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#16a34a,#15803d);color:white;padding:20px 32px;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.25);text-align:center;min-width:280px;">
+  <div id="otpDisplayTitle" style="font-size:12px;font-weight:700;opacity:0.8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">🔐 Your Check-in OTP</div>
+  <div id="otpValue" style="font-family:Nunito,sans-serif;font-size:40px;font-weight:800;letter-spacing:8px;margin-bottom:8px;">——</div>
+  <div style="font-size:11px;opacity:0.75;">Enter this OTP in the check-in screen</div>
+  <button onclick="document.getElementById('otpDisplay').style.display='none'" style="margin-top:12px;padding:6px 16px;border-radius:20px;border:2px solid white;background:transparent;color:white;font-size:12px;font-weight:700;cursor:pointer;">Dismiss</button>
+</div>
 
 <script>
   const API = 'http://localhost:8080/api';
@@ -274,42 +288,45 @@
   document.getElementById('userName').textContent   = userName;
   document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
 
+  // ─── Logout ──────────────────────────────────────────────────────────────
   function logout() {
     const activeBooking = localStorage.getItem('activeBooking');
     localStorage.clear();
     if (activeBooking) localStorage.setItem('activeBooking', activeBooking);
     window.location.href = 'index.html';
-}
+  }
 
+  // ─── State ───────────────────────────────────────────────────────────────
   let map, userMarker, userLat, userLng;
-  let allParkings    = [];
-  let filteredList   = [];
-  let currentFilter  = 'all';
-  let selectedParking = null;
-  let bookingStep    = 1;
-  let bookingData = { vehicleType: null, hours: null, parking: null, vehicleNumber: '' };
-  let activeBooking  = JSON.parse(localStorage.getItem('activeBooking') || 'null');
-  let timerInterval  = null;
-  let parkingMarkers = [];
-  let routeLine      = null;
-  let recommendedId  = null;
+  let allParkings   = [];
+  let filteredList  = [];
+  let currentFilter = 'all';
+  let selectedParking  = null;
+  let bookingStep      = 1;
+  let bookingData      = { vehicleType: null, hours: null, parking: null, vehicleNumber: '' };
+  let activeBooking    = JSON.parse(localStorage.getItem('activeBooking') || 'null');
+  let timerInterval    = null;
+  let parkingMarkers   = [];
+  let routeLine        = null;
+  let recommendedId    = null;
+  // FIX: single auto-refresh interval stored here so it never stacks up
+  let autoRefreshInterval = null;
 
-  
-  // Normalize field names from backend
+  const DEFAULT_LAT = 13.0850;
+  const DEFAULT_LNG = 80.2101;
+
+  // ─── Field normaliser ────────────────────────────────────────────────────
   function normalizeParkingFields(p) {
     return {
       ...p,
-      carPricePerHour:  Number(p.carPrice  || p.carPrice  || p.car_price  || 0),
-      bikePricePerHour: Number(p.bikePrice || p.bikePrice || p.bike_price || 0),
+      carPricePerHour:  Number(p.carPrice  || p.car_price  || 0),
+      bikePricePerHour: Number(p.bikePrice || p.bike_price || 0),
       lat: parseFloat(p.lat || p.latitude  || 0) || null,
       lng: parseFloat(p.lng || p.longitude || 0) || null,
     };
   }
 
-  // Default to Saligramam, Chennai (where City Parking is)
-  const DEFAULT_LAT = 13.0850;
-  const DEFAULT_LNG = 80.2101;
-
+  // ─── Map ─────────────────────────────────────────────────────────────────
   function initMap(lat, lng) {
     if (map) map.remove();
     map = L.map('map').setView([lat, lng], 15);
@@ -318,7 +335,7 @@
     }).addTo(map);
     const userIcon = L.divIcon({
       html: `<div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 4px rgba(59,130,246,0.3)"></div>`,
-      iconSize: [16, 16], iconAnchor: [8, 8], className: ''
+      iconSize: [16,16], iconAnchor: [8,8], className: ''
     });
     userMarker = L.marker([lat, lng], { icon: userIcon })
       .addTo(map).bindPopup('📍 You are here').openPopup();
@@ -332,21 +349,21 @@
       const color = getStatusColor(p);
       const isRecommended = p.id === recommendedId;
       const icon = L.divIcon({
-        html: `<div style="background:${color};color:white;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;font-family:Nunito,sans-serif;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.25);line-height:1.5;text-align:center;${isRecommended ? 'border:2px solid #f59e0b;' : ''}">
-                 ${isRecommended ? '⭐ ' : '🅿️ '}${p.availableSlots || 0} slots<br>
+        html: `<div style="background:${color};color:white;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:800;font-family:Nunito,sans-serif;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,0.25);line-height:1.5;text-align:center;${isRecommended?'border:2px solid #f59e0b;':''}">
+                 ${isRecommended?'⭐ ':'🅿️ '}${p.availableSlots||0} slots<br>
                  <span style="font-size:9px;opacity:0.9;">₹${p.carPrice||0}/hr</span>
                </div>`,
-        iconSize: [80, 42], iconAnchor: [40, 21], className: ''
+        iconSize: [80,42], iconAnchor: [40,21], className: ''
       });
       const marker = L.marker([p.lat, p.lng], { icon })
         .addTo(map)
         .bindPopup(`
           <div style="font-family:Poppins,sans-serif;min-width:160px;">
-            ${isRecommended ? '<div style="background:#f59e0b;color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:6px;display:inline-block;">⭐ Recommended</div><br>' : ''}
+            ${isRecommended?'<div style="background:#f59e0b;color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:6px;display:inline-block;">⭐ Recommended</div><br>':''}
             <b style="font-size:14px;">${p.name}</b><br>
             <span style="color:#6b7280;font-size:12px;">📍 ${p.location}</span><br><br>
             <span style="color:#16a34a;font-weight:700;">🚗 ₹${p.carPrice||0}/hr &nbsp; 🏍️ ₹${p.bikePrice||0}/hr</span><br>
-            <span style="color:#4b5563;font-size:12px;">Available: ${p.availableSlots || 0} slots</span>
+            <span style="color:#4b5563;font-size:12px;">Available: ${p.availableSlots||0} slots</span>
           </div>`)
         .on('click', () => selectParking(p));
       parkingMarkers.push(marker);
@@ -354,19 +371,20 @@
   }
 
   function getStatusColor(p) {
-    const avail = p.availableSlots || 0;
-    if (avail === 0) return '#dc2626';
-    if (avail <= 3)  return '#f59e0b';
+    const a = p.availableSlots || 0;
+    if (a === 0) return '#dc2626';
+    if (a <= 3)  return '#f59e0b';
     return '#16a34a';
   }
 
   function getStatusLabel(p) {
-    const avail = p.availableSlots || 0;
-    if (avail === 0) return { label: 'Full',    cls: 'full'    };
-    if (avail <= 3)  return { label: 'Limited', cls: 'limited' };
-    return               { label: 'Open',    cls: 'open'    };
+    const a = p.availableSlots || 0;
+    if (a === 0) return { label: 'Full',    cls: 'full'    };
+    if (a <= 3)  return { label: 'Limited', cls: 'limited' };
+    return               { label: 'Open',   cls: 'open'    };
   }
 
+  // ─── Location ────────────────────────────────────────────────────────────
   function locateMe() {
     if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
     showToast('Getting your location...', 'info');
@@ -377,7 +395,7 @@
         initMap(userLat, userLng);
         loadParkings();
       },
-      err => {
+      () => {
         userLat = DEFAULT_LAT;
         userLng = DEFAULT_LNG;
         initMap(userLat, userLng);
@@ -388,6 +406,7 @@
     );
   }
 
+  // ─── Load parkings ───────────────────────────────────────────────────────
   async function loadParkings() {
     document.getElementById('parkingListContainer').innerHTML =
       `<div class="loading-state"><span class="spin">🔍</span>Finding nearby parking...</div>`;
@@ -397,35 +416,23 @@
       if (!res.ok) throw new Error();
       let parkings = await res.json();
 
-      // Normalize field names
       parkings = parkings.map(normalizeParkingFields);
 
-      // Fetch slot counts for each parking
       await Promise.all(parkings.map(async p => {
         try {
           const sr = await fetch(`${API}/slots?parkingId=${p.id}`);
           if (sr.ok) {
             const slots = await sr.json();
-            p.totalSlots = slots.length;
-p.availableSlots = slots.filter(s =>
-    (s.status || '').toLowerCase() === 'available'
-).length;
-p.carSlots = slots.filter(s =>
-    (s.type || '').toLowerCase().includes('car') &&
-    (s.status || '').toLowerCase() === 'available'
-).length;
-p.bikeSlots = slots.filter(s =>
-    (s.type || '').toLowerCase().includes('bike') &&
-    (s.status || '').toLowerCase() === 'available'
-).length;
+            p.totalSlots     = slots.length;
+            p.availableSlots = slots.filter(s => (s.status||'').toLowerCase() === 'available').length;
+            p.carSlots       = slots.filter(s => (s.type||'').toLowerCase().includes('car')  && (s.status||'').toLowerCase() === 'available').length;
+            p.bikeSlots      = slots.filter(s => (s.type||'').toLowerCase().includes('bike') && (s.status||'').toLowerCase() === 'available').length;
           }
         } catch { p.availableSlots = 0; p.totalSlots = 0; }
 
-        // Calculate distance from user
         if (p.lat && p.lng) p.distance = calcDistance(userLat, userLng, p.lat, p.lng);
       }));
 
-      // Sort by availability then distance
       parkings.sort((a, b) => {
         if (a.availableSlots > 0 && b.availableSlots === 0) return -1;
         if (a.availableSlots === 0 && b.availableSlots > 0) return 1;
@@ -435,7 +442,6 @@ p.bikeSlots = slots.filter(s =>
       allParkings  = parkings;
       filteredList = parkings;
 
-      // Auto recommend nearest available parking
       const nearest = parkings.find(p => p.availableSlots > 0) || parkings[0];
       if (nearest) {
         recommendedId = nearest.id;
@@ -457,8 +463,8 @@ p.bikeSlots = slots.filter(s =>
 
   function calcDistance(lat1, lng1, lat2, lng2) {
     const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLng = (lng2-lng1)*Math.PI/180;
     const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
@@ -478,13 +484,13 @@ p.bikeSlots = slots.filter(s =>
       const dist = p.distance ? `· ${p.distance.toFixed(1)} km away` : '';
       const isRecommended = p.id === recommendedId;
       return `
-        <div class="parking-card ${isRecommended ? 'recommended' : ''}" id="card-${p.id}"
+        <div class="parking-card ${isRecommended?'recommended':''}" id="card-${p.id}"
           onclick="selectParking(${JSON.stringify(p).replace(/"/g,'&quot;')})">
-          ${isRecommended ? '<div class="recommended-tag">⭐ Nearest & Recommended</div>' : ''}
+          ${isRecommended?'<div class="recommended-tag">⭐ Nearest & Recommended</div>':''}
           <div class="pc-top">
             <div>
               <div class="pc-name">${p.name}</div>
-              <div class="pc-loc">📍 ${p.location || ''} ${dist}</div>
+              <div class="pc-loc">📍 ${p.location||''} ${dist}</div>
             </div>
             <span class="avail-badge ${cls}">${label}</span>
           </div>
@@ -506,19 +512,7 @@ p.bikeSlots = slots.filter(s =>
     }).join('');
   }
 
-  // Show route on map
-  function showRouteOnMap(p) {
-    if (!p.lat || !p.lng) { showToast('No coordinates for this parking', 'error'); return; }
-    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-    routeLine = L.polyline(
-      [[userLat, userLng], [p.lat, p.lng]],
-      { color: '#3b82f6', weight: 4, dashArray: '8,8', opacity: 0.85 }
-    ).addTo(map);
-    map.fitBounds([[userLat, userLng], [p.lat, p.lng]], { padding: [60, 60] });
-    selectParking(p);
-    showToast(`📍 Route to ${p.name} shown on map`, 'info');
-  }
-
+  // ─── Filters / Search ────────────────────────────────────────────────────
   function setFilter(filter, btn) {
     currentFilter = filter;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -530,30 +524,42 @@ p.bikeSlots = slots.filter(s =>
     const q = document.getElementById('searchInput').value.toLowerCase();
     filteredList = allParkings.filter(p => {
       const matchSearch = !q || p.name.toLowerCase().includes(q) || (p.location||'').toLowerCase().includes(q);
-      const avail = p.availableSlots || 0;
+      const a = p.availableSlots || 0;
       const matchFilter =
         currentFilter === 'all'       ? true :
-        currentFilter === 'available' ? avail > 3 :
-        currentFilter === 'limited'   ? avail > 0 && avail <= 3 :
-        currentFilter === 'full'      ? avail === 0 : true;
+        currentFilter === 'available' ? a > 3 :
+        currentFilter === 'limited'   ? a > 0 && a <= 3 :
+        currentFilter === 'full'      ? a === 0 : true;
       return matchSearch && matchFilter;
     });
     renderParkingList(filteredList);
     addParkingMarkers(filteredList);
   }
 
+  // ─── Select parking ───────────────────────────────────────────────────────
   function selectParking(p) {
     selectedParking = p;
     document.querySelectorAll('.parking-card').forEach(c => c.classList.remove('selected'));
     const card = document.getElementById(`card-${p.id}`);
-    if (card) { card.classList.add('selected'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    if (card) { card.classList.add('selected'); card.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
     if (p.lat && p.lng && map) map.flyTo([p.lat, p.lng], 16);
   }
 
+  // ─── Navigate (FIX: setInterval removed from here) ───────────────────────
+  function navigateToParking(p) {
+    if (p.lat && p.lng) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`, '_blank');
+    } else {
+      const address = encodeURIComponent(`${p.name} ${p.location||''}`);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
+    }
+  }
+
+  // ─── Booking flow ─────────────────────────────────────────────────────────
   function openBooking(p) {
     if (activeBooking) { showToast('You already have an active booking!', 'error'); return; }
     selectedParking = p;
-    bookingData = { vehicleType: null, hours: null, parking: p };
+    bookingData = { vehicleType: null, hours: null, parking: p, vehicleNumber: '' };
     bookingStep = 1;
     renderBookingStep();
     document.getElementById('bookingModal').classList.add('open');
@@ -600,14 +606,14 @@ p.bikeSlots = slots.filter(s =>
           ).join('')}
         </div>
         ${bookingData.hours ? `
-           <div style="margin-bottom:16px;">
-  <label style="font-size:12px;font-weight:600;color:#4b5563;display:block;margin-bottom:6px;">🚘 Vehicle Number</label>
-  <input type="text" id="vehicleNumberInput" value="${bookingData.vehicleNumber||''}"
-    placeholder="e.g. TN01AB1234"
-    oninput="bookingData.vehicleNumber=this.value.toUpperCase()"
-    style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;"
-    onfocus="this.style.borderColor='#16a34a'" onblur="this.style.borderColor='#e5e7eb'">
-</div>
+          <div style="margin-bottom:16px;">
+            <label style="font-size:12px;font-weight:600;color:#4b5563;display:block;margin-bottom:6px;">🚘 Vehicle Number</label>
+            <input type="text" id="vehicleNumberInput" value="${bookingData.vehicleNumber||''}"
+              placeholder="e.g. TN01AB1234"
+              oninput="bookingData.vehicleNumber=this.value.toUpperCase()"
+              style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;"
+              onfocus="this.style.borderColor='#16a34a'" onblur="this.style.borderColor='#e5e7eb'">
+          </div>
           <div class="price-summary">
             <div class="price-row"><span>Vehicle</span><span>${bookingData.vehicleType==='car'?'🚗 Car':'🏍️ Bike'}</span></div>
             <div class="price-row"><span>Duration</span><span>${bookingData.hours} hour${bookingData.hours>1?'s':''}</span></div>
@@ -643,14 +649,15 @@ p.bikeSlots = slots.filter(s =>
 
   function selectVehicle(type) { bookingData.vehicleType = type; renderBookingStep(); }
   function selectHours(h)      { bookingData.hours = h;          renderBookingStep(); }
+
   function nextStep() {
-  if (bookingStep === 2 && !bookingData.vehicleNumber.trim()) {
-    showToast('🚘 Please enter your vehicle number!', 'error');
-    return;
+    if (bookingStep === 2 && !bookingData.vehicleNumber.trim()) {
+      showToast('🚘 Please enter your vehicle number!', 'error');
+      return;
+    }
+    bookingStep++;
+    renderBookingStep();
   }
-  bookingStep++;
-  renderBookingStep();
-}
 
   async function confirmBooking() {
     const btn = document.getElementById('btnConfirm');
@@ -661,14 +668,15 @@ p.bikeSlots = slots.filter(s =>
     const total = rate * bookingData.hours;
 
     const payload = {
-      parkingId:    p.id,
-      customerName: userName,
+      parkingId:     p.id,
+      customerName:  userName,
       vehicleNumber: bookingData.vehicleNumber,
-      type:         bookingData.vehicleType,
-      duration:     String(bookingData.hours) + ' hrs',
-      amount:       total,
-      status:       'confirmed',
-      bookingDate:  new Date().toISOString().split('T')[0]
+      userPhone:     userPhone,
+      type:          bookingData.vehicleType,
+      duration:      String(bookingData.hours) + ' hrs',
+      amount:        total,
+      status:        'confirmed',
+      bookingDate:   new Date().toISOString().split('T')[0]
     };
 
     try {
@@ -689,31 +697,45 @@ p.bikeSlots = slots.filter(s =>
       if (booking.slotId) {
         try {
           const slotRes = await fetch(`${API}/slots/${booking.slotId}`);
-          const slot = await slotRes.json();
-          slotNumber = slot.slotNumber;
+          const slot    = await slotRes.json();
+          slotNumber    = slot.slotNumber;
         } catch {}
       }
 
       activeBooking = {
-    ...booking,
-    parkingName: p.name,
-    hours: bookingData.hours,
-    totalAmount: total,
-    parkingLat: p.lat,
-    parkingLng: p.lng,
-    slotNumber,
-    userId: userId  // ✅ save userId
-};
+        ...booking,
+        parkingName: p.name,
+        hours:       bookingData.hours,
+        totalAmount: total,
+        parkingLat:  p.lat,
+        parkingLng:  p.lng,
+        slotNumber,
+        userId:      userId
+      };
       localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
+
       closeModal('bookingModal');
       showToast(`✅ Booking confirmed! Your slot is ${slotNumber}`, 'success');
+
+      // Show OTP on screen (for demo — no SMS needed)
+      const otpDisplay = document.getElementById('otpDisplay');
+      const otpValue   = document.getElementById('otpValue');
+      if (otpDisplay && otpValue && booking.otp) {
+        document.getElementById('otpDisplayTitle').textContent = '🔐 Your Check-in OTP';
+        otpValue.textContent = booking.otp;
+        otpDisplay.style.display = 'block';
+        setTimeout(() => otpDisplay.style.display = 'none', 60000);
+      }
+
+      // Open check-in OTP modal after short delay
       setTimeout(() => {
-        document.getElementById('checkinSubtitle').textContent = `Enter OTP for ${p.name} — Slot ${slotNumber}`;
+        document.getElementById('checkinSubtitle').textContent =
+          `Enter OTP for ${p.name} — Slot ${slotNumber}`;
+        clearOtpInputs('checkinOtpWrap');
         document.getElementById('checkinModal').classList.add('open');
       }, 800);
 
-      // Refresh parking list to show updated slot counts
-      // Refresh parking list after short delay to show updated slot counts
+      // Refresh parking list once after booking
       setTimeout(() => loadParkings(), 2000);
 
     } catch {
@@ -722,85 +744,145 @@ p.bikeSlots = slots.filter(s =>
 
     btn.disabled = false; btn.textContent = 'Confirm & Get OTP';
   }
+
+  // ─── OTP helpers ─────────────────────────────────────────────────────────
   function getOtpValue(wrapId) {
-    return Array.from(document.querySelectorAll(`#${wrapId} .otp-digit`)).map(i => i.value).join('');
+    return Array.from(document.querySelectorAll(`#${wrapId} .otp-digit`))
+      .map(i => i.value).join('');
   }
 
+  function clearOtpInputs(wrapId) {
+    document.querySelectorAll(`#${wrapId} .otp-digit`).forEach(i => i.value = '');
+  }
+
+  function otpNext(input, wrapId) {
+    input.value = input.value.replace(/[^0-9]/g, '');
+    if (input.value && input.nextElementSibling) input.nextElementSibling.focus();
+  }
+
+  // ─── Check-in (FIX: now updates activeBooking and shows the banner) ──────
   async function confirmCheckin() {
-  const otp = getOtpValue('checkinOtpWrap');
-  if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
+    const otp = getOtpValue('checkinOtpWrap');
+    if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
 
-  // Call backend checkin
-  try {
-    await fetch(`${API}/bookings/${activeBooking.id}/checkin`, { method: 'POST' });
-  } catch {}
+    const btn = document.getElementById('btnCheckin');
+    btn.disabled = true; btn.textContent = 'Verifying...';
 
-  activeBooking.checkedIn   = true;
-  activeBooking.checkinTime = Date.now();
-  activeBooking.endTime     = Date.now() + bookingData.hours * 60 * 60 * 1000;
-  localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
+    try {
+      const res = await fetch(`${API}/bookings/${activeBooking.id}/checkin?otp=${otp}`, { method: 'POST' });
 
-  closeModal('checkinModal');
-  showToast('🟢 Checked in! Your session has started.', 'success');
-  showCurrentBooking();
-  loadParkings(); // refresh slot counts
-}
+      if (!res.ok) {
+        const err = await res.text();
+        showToast(`❌ ${err}`, 'error');
+        btn.disabled = false; btn.textContent = '✅ Confirm Check-in';
+        return;
+      }
 
-  function openCheckout() { document.getElementById('checkoutModal').classList.add('open'); }
+      // ✅ FIX: update activeBooking with check-in info so timer and banner work
+      activeBooking.checkedIn   = true;
+      activeBooking.checkinTime = Date.now();
+      const hours = Number(activeBooking.hours || 1);
+      activeBooking.endTime     = activeBooking.checkinTime + (hours * 60 * 60 * 1000);
+      localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
+
+      closeModal('checkinModal');
+      showToast('✅ Checked in! Enjoy your parking session.', 'success');
+      showCurrentBooking();
+
+    } catch {
+      showToast('❌ Could not connect to server.', 'error');
+    }
+
+    btn.disabled = false; btn.textContent = '✅ Confirm Check-in';
+  }
+
+  // ─── Checkout ─────────────────────────────────────────────────────────────
+  async function openCheckout() {
+    // Reset modal state
+    clearOtpInputs('checkoutOtpWrap');
+    document.getElementById('checkoutOtpDisplay').style.display = 'none';
+    document.getElementById('checkoutOtpInfo').textContent = '📱 Generating your checkout OTP...';
+    document.getElementById('checkoutModal').classList.add('open');
+
+    try {
+      const res  = await fetch(`${API}/bookings/${activeBooking.id}/generate-checkout-otp`, { method: 'POST' });
+      const data = await res.json();
+
+      if (data.otp) {
+        // Show OTP inside the modal
+        document.getElementById('checkoutOtpValue').textContent = data.otp;
+        document.getElementById('checkoutOtpDisplay').style.display = 'block';
+        document.getElementById('checkoutOtpInfo').textContent = '👆 Your OTP is shown above — enter it below';
+      }
+    } catch {
+      document.getElementById('checkoutOtpInfo').textContent = '❌ Could not generate OTP. Please try again.';
+    }
+  }
 
   async function confirmCheckout() {
-  const otp = getOtpValue('checkoutOtpWrap');
-  if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
+    const otp = getOtpValue('checkoutOtpWrap');
+    if (otp.length < 6) { showToast('Enter all 6 digits!', 'error'); return; }
 
-  // Call backend checkout — frees the slot automatically
-  try {
-    await fetch(`${API}/bookings/${activeBooking.id}/checkout`, { method: 'POST' });
-  } catch {}
+    const btn = document.getElementById('btnCheckout');
+    btn.disabled = true; btn.textContent = 'Processing...';
 
-  clearInterval(timerInterval);
-  activeBooking = null;
-  localStorage.removeItem('activeBooking');
-  closeModal('checkoutModal');
-  document.getElementById('currentBookingBanner').classList.remove('show');
-  showToast('✅ Checked out! Thanks for using Parkify.', 'success');
+    try {
+      const res = await fetch(`${API}/bookings/${activeBooking.id}/checkout?otp=${otp}`, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.text();
+        showToast(`❌ ${err}`, 'error');
+        btn.disabled = false; btn.textContent = '🔓 Confirm Checkout';
+        return;
+      }
+    } catch {
+      showToast('❌ Could not connect to server.', 'error');
+      btn.disabled = false; btn.textContent = '🔓 Confirm Checkout';
+      return;
+    }
 
-  // Reload parkings — slot count will increase
-  setTimeout(() => loadParkings(), 2000);
-}
+    clearInterval(timerInterval);
+    activeBooking = null;
+    localStorage.removeItem('activeBooking');
+    closeModal('checkoutModal');
+    document.getElementById('currentBookingBanner').classList.remove('show');
+    showToast('✅ Checked out! Thanks for using Parkify.', 'success');
 
-function showCurrentBooking() {
+    setTimeout(() => loadParkings(), 2000);
+  }
+
+  // ─── Active booking banner + timer ───────────────────────────────────────
+  function showCurrentBooking() {
     if (!activeBooking || !activeBooking.checkedIn) return;
     document.getElementById('currentBookingBanner').classList.add('show');
     document.getElementById('cbParkingName').textContent = activeBooking.parkingName || 'Parking';
-    document.getElementById('cbSlotNumber').textContent  = activeBooking.slotNumber || '—';
+    document.getElementById('cbSlotNumber').textContent  = activeBooking.slotNumber  || '—';
 
-    // Fix endTime if missing after page reload
     if (!activeBooking.endTime) {
-        const hours = Number(activeBooking.hours || (activeBooking.duration || '1').replace(' hrs','') || 1);
-        activeBooking.endTime = activeBooking.checkinTime + (hours * 60 * 60 * 1000);
-        localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
+      const hours = Number(activeBooking.hours || (activeBooking.duration||'1').replace(' hrs','') || 1);
+      activeBooking.endTime = activeBooking.checkinTime + (hours * 60 * 60 * 1000);
+      localStorage.setItem('activeBooking', JSON.stringify(activeBooking));
     }
 
     startTimer();
 
     if (activeBooking.parkingLat && activeBooking.parkingLng && map) {
-        if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
-        routeLine = L.polyline(
-            [[userLat, userLng], [activeBooking.parkingLat, activeBooking.parkingLng]],
-            { color: '#16a34a', weight: 5, dashArray: '8,8', opacity: 0.9 }
-        ).addTo(map);
-        map.fitBounds(
-            [[userLat, userLng], [activeBooking.parkingLat, activeBooking.parkingLng]],
-            { padding: [60, 60] }
-        );
+      if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+      routeLine = L.polyline(
+        [[userLat, userLng], [activeBooking.parkingLat, activeBooking.parkingLng]],
+        { color: '#16a34a', weight: 5, dashArray: '8,8', opacity: 0.9 }
+      ).addTo(map);
+      map.fitBounds(
+        [[userLat, userLng], [activeBooking.parkingLat, activeBooking.parkingLng]],
+        { padding: [60, 60] }
+      );
     }
-}
+  }
 
   function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       const remaining = activeBooking.endTime - Date.now();
-      const timerEl = document.getElementById('cbTimer');
+      const timerEl   = document.getElementById('cbTimer');
       if (remaining <= 0) {
         timerEl.textContent = '00:00:00';
         timerEl.classList.add('urgent');
@@ -816,11 +898,7 @@ function showCurrentBooking() {
     }, 1000);
   }
 
-  function otpNext(input, wrapId) {
-    input.value = input.value.replace(/[^0-9]/g, '');
-    if (input.value && input.nextElementSibling) input.nextElementSibling.focus();
-  }
-
+  // ─── Misc ─────────────────────────────────────────────────────────────────
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
   function showToast(msg, type = 'success') {
@@ -829,25 +907,18 @@ function showCurrentBooking() {
     setTimeout(() => t.style.display = 'none', 3500);
   }
 
-  // Start
+  // ─── Startup ──────────────────────────────────────────────────────────────
   userLat = DEFAULT_LAT; userLng = DEFAULT_LNG;
   initMap(userLat, userLng);
   locateMe();
+
+  // Restore active booking banner if already checked in
   if (activeBooking && activeBooking.checkedIn && String(activeBooking.userId) === String(userId)) {
     showCurrentBooking();
-}
-  function navigateToParking(p) {
-  if (p.lat && p.lng) {
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`, '_blank');
-  } else {
-    const address = encodeURIComponent(`${p.name} ${p.location || ''}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
   }
-  // Auto refresh slot counts every 15 seconds
-setInterval(() => {
-  loadParkings();
-}, 15000);
-}
+
+  // FIX: single global auto-refresh — not inside navigateToParking()
+  autoRefreshInterval = setInterval(() => loadParkings(), 15000);
 </script>
 </body>
 </html>
