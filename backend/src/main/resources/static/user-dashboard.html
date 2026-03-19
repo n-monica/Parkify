@@ -168,7 +168,10 @@
           <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:2px;">Time Remaining</div>
           <div class="cb-timer" id="cbTimer">--:--</div>
         </div>
-        <button class="btn-checkout" onclick="openCheckout()">🔓 Checkout</button>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <button class="btn-checkout" onclick="openCheckout()">🔓 Checkout</button>
+          <button onclick="openCancel()" style="padding:6px 14px;border-radius:20px;border:2px solid #fca5a5;background:transparent;color:#fca5a5;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">❌ Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -231,9 +234,15 @@
       <input class="otp-digit" maxlength="1" oninput="otpNext(this,'checkinOtpWrap')">
       <input class="otp-digit" maxlength="1" oninput="otpNext(this,'checkinOtpWrap')">
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel"  onclick="closeModal('checkinModal')">Cancel</button>
-      <button class="btn-confirm" id="btnCheckin" onclick="confirmCheckin()">✅ Confirm Check-in</button>
+    <div class="modal-actions" style="flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:12px;width:100%;">
+        <button class="btn-cancel" onclick="closeModal('checkinModal')">Later</button>
+        <button class="btn-confirm" id="btnCheckin" onclick="confirmCheckin()">✅ Confirm Check-in</button>
+      </div>
+      <button onclick="openCancelFromCheckin()"
+        style="width:100%;padding:10px;border-radius:25px;border:1.5px solid #fca5a5;background:white;color:#dc2626;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;">
+        ❌ Cancel This Booking
+      </button>
     </div>
   </div>
 </div>
@@ -264,6 +273,50 @@
       <button class="btn-cancel"  onclick="closeModal('checkoutModal')">Cancel</button>
       <button class="btn-confirm" id="btnCheckout" onclick="confirmCheckout()">🔓 Confirm Checkout</button>
     </div>
+  </div>
+</div>
+
+<!-- CANCEL BOOKING MODAL -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal">
+    <div class="modal-title">❌ Cancel Booking</div>
+    <div class="modal-subtitle">Are you sure you want to cancel?</div>
+    <div class="otp-info" style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;">
+      ⚠️ Your booking will be cancelled and the slot will be freed.<br>
+      A <strong>100% refund of ₹<span id="cancelRefundAmt">0</span></strong> will be processed to your original payment method.
+    </div>
+    <div style="background:#f9fafb;border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;color:#4b5563;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span>Parking</span><span id="cancelParkingName" style="font-weight:600;">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span>Slot</span><span id="cancelSlotNum" style="font-weight:600;">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Amount Paid</span><span id="cancelAmount" style="font-weight:600;color:#16a34a;">—</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('cancelModal')">Keep Booking</button>
+      <button class="btn-confirm" id="btnCancelConfirm"
+        style="background:linear-gradient(135deg,#dc2626,#b91c1c);"
+        onclick="confirmCancel()">Yes, Cancel It</button>
+    </div>
+  </div>
+</div>
+
+<!-- REFUND SUCCESS MODAL -->
+<div class="modal-overlay" id="refundModal">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:48px;margin-bottom:12px;">💸</div>
+    <div class="modal-title">Refund Initiated!</div>
+    <div class="modal-subtitle">Your booking has been cancelled</div>
+    <div style="background:#d1fae5;border-radius:14px;padding:24px;margin:20px 0;">
+      <div style="font-size:13px;color:#065f46;margin-bottom:6px;">Refund Amount</div>
+      <div style="font-family:'Nunito',sans-serif;font-size:36px;font-weight:800;color:#059669;">₹<span id="refundSuccessAmt">0</span></div>
+      <div style="font-size:11px;color:#6b7280;margin-top:8px;">Will be credited to your original payment method within 5-7 business days</div>
+    </div>
+    <button class="btn-confirm" onclick="closeModal('refundModal')">Done</button>
   </div>
 </div>
 
@@ -896,6 +949,57 @@
       timerEl.textContent = `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
       timerEl.classList.toggle('urgent', remaining < 600000);
     }, 1000);
+  }
+
+  // ─── Cancel Booking ──────────────────────────────────────────────────────
+  function openCancelFromCheckin() {
+    closeModal('checkinModal');
+    openCancel();
+  }
+
+  function openCancel() {
+    if (!activeBooking) return;
+    // Populate cancel modal details
+    document.getElementById('cancelParkingName').textContent = activeBooking.parkingName || '—';
+    document.getElementById('cancelSlotNum').textContent     = activeBooking.slotNumber  || '—';
+    document.getElementById('cancelAmount').textContent      = '₹' + (activeBooking.totalAmount || activeBooking.amount || 0);
+    document.getElementById('cancelRefundAmt').textContent   = activeBooking.totalAmount || activeBooking.amount || 0;
+    document.getElementById('cancelModal').classList.add('open');
+  }
+
+  async function confirmCancel() {
+    const btn = document.getElementById('btnCancelConfirm');
+    btn.disabled = true; btn.textContent = 'Cancelling...';
+
+    try {
+      const res  = await fetch(`${API}/bookings/${activeBooking.id}/cancel`, { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(`❌ ${data}`, 'error');
+        btn.disabled = false; btn.textContent = 'Yes, Cancel It';
+        return;
+      }
+
+      // Show refund success modal
+      document.getElementById('refundSuccessAmt').textContent = data.refundAmount || 0;
+      closeModal('cancelModal');
+      document.getElementById('refundModal').classList.add('open');
+
+      // Clear active booking
+      clearInterval(timerInterval);
+      activeBooking = null;
+      localStorage.removeItem('activeBooking');
+      document.getElementById('currentBookingBanner').classList.remove('show');
+
+      // Refresh parkings
+      setTimeout(() => loadParkings(), 1500);
+
+    } catch {
+      showToast('❌ Could not connect to server.', 'error');
+    }
+
+    btn.disabled = false; btn.textContent = 'Yes, Cancel It';
   }
 
   // ─── Misc ─────────────────────────────────────────────────────────────────

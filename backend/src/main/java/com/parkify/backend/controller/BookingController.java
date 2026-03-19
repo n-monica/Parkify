@@ -205,6 +205,58 @@ public class BookingController {
         return ResponseEntity.ok(booking);
     }
 
+    // GET bookings by parking
+    @GetMapping("/parking/{parkingId}")
+    public List<Booking> getBookingsByParking(@PathVariable Long parkingId) {
+        return bookingService.getBookingsByParking(parkingId);
+    }
+
+    // POST cancel booking — frees slot, calculates refund
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long id) {
+        Optional<Booking> opt = bookingService.getBookingById(id);
+        if (opt.isEmpty()) return ResponseEntity.status(404).body("Booking not found");
+
+        Booking booking = opt.get();
+
+        // Only allow cancel if not yet checked in
+        if ("checked-in".equalsIgnoreCase(booking.getStatus())) {
+            return ResponseEntity.status(400).body("Cannot cancel — you are already checked in!");
+        }
+        if ("completed".equalsIgnoreCase(booking.getStatus())) {
+            return ResponseEntity.status(400).body("Cannot cancel a completed booking!");
+        }
+        if ("cancelled".equalsIgnoreCase(booking.getStatus())) {
+            return ResponseEntity.status(400).body("Booking is already cancelled!");
+        }
+
+        // Calculate refund — 100% since no actual payment gateway
+        double refundAmount = booking.getAmount() != null ? booking.getAmount() : 0;
+
+        // Free the slot
+        if (booking.getSlotId() != null) {
+            slotService.getSlotById(booking.getSlotId()).ifPresent(slot -> {
+                slot.setStatus("available");
+                slotService.saveSlot(slot);
+            });
+        }
+
+        // Update booking
+        booking.setStatus("cancelled");
+        booking.setOtp(null);
+        booking.setActualAmount(0.0);
+        bookingService.saveBooking(booking);
+
+        System.out.println("Booking #" + id + " cancelled. Refund: ₹" + refundAmount);
+
+        // Return refund info
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "Booking cancelled successfully!",
+            "refundAmount", refundAmount,
+            "bookingId", id
+        ));
+    }
+
     // DELETE booking
     @DeleteMapping("/{id}")
     public void deleteBooking(@PathVariable Long id) {

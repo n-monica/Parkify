@@ -201,7 +201,7 @@
       allBookings = [];
       for (const p of parkings) {
         try {
-          const bRes = await fetch(`${API}/bookings?parkingId=${p.id}`);
+          const bRes = await fetch(`${API}/bookings/parking/${p.id}`);
           if (bRes.ok) {
             const bookings = await bRes.json();
             bookings.forEach(b => b._parkingName = p.name);

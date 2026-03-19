@@ -51,17 +51,26 @@ public class ParkingController {
         return ResponseEntity.status(404).body("Parking not found");
     }
 
-    // GET revenue for a parking
+    // GET revenue for a parking — uses actualAmount for completed bookings
     @GetMapping("/{id}/revenue")
     public ResponseEntity<?> getParkingRevenue(@PathVariable Long id) {
         List<Booking> bookings = bookingService.getBookingsByParking(id);
+
+        // FIX: use actualAmount if available, fall back to amount
         double totalRevenue = bookings.stream()
-            .mapToDouble(b -> b.getAmount() != null ? b.getAmount() : 0)
+            .mapToDouble(b -> b.getActualAmount() != null ? b.getActualAmount()
+                            : b.getAmount()       != null ? b.getAmount() : 0)
             .sum();
+
+        int completed = (int) bookings.stream()
+            .filter(b -> "completed".equalsIgnoreCase(b.getStatus()))
+            .count();
+
         Map<String, Object> result = new HashMap<>();
         result.put("parkingId", id);
         result.put("totalRevenue", totalRevenue);
         result.put("totalBookings", bookings.size());
+        result.put("completedBookings", completed);
         return ResponseEntity.ok(result);
     }
 
@@ -84,8 +93,8 @@ public class ParkingController {
             if (updatedParking.getBikePrice() != null) p.setBikePrice(updatedParking.getBikePrice());
             if (updatedParking.getLat() != null)       p.setLat(updatedParking.getLat());
             if (updatedParking.getLng() != null)       p.setLng(updatedParking.getLng());
-            if (updatedParking.getCity() != null)      p.setCity(updatedParking.getCity());      // ← added
-            if (updatedParking.getLocation() != null)  p.setLocation(updatedParking.getLocation()); // ← added
+            if (updatedParking.getCity() != null)      p.setCity(updatedParking.getCity());
+            if (updatedParking.getLocation() != null)  p.setLocation(updatedParking.getLocation());
             return ResponseEntity.ok(parkingService.saveParking(p));
         }
         return ResponseEntity.status(404).body("Parking not found");
