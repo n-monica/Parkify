@@ -69,6 +69,9 @@ public class OwnerController {
                 parking.setOwnerId(o.getId());
                 parking.setName(o.getParkingName());
                 parking.setLocation(o.getParkingAddress() + ", " + o.getCity());
+                parking.setLat(o.getLat());      // ✅ ADD THIS
+                parking.setLng(o.getLng());      // ✅ ADD THIS
+                parking.setCity(o.getCity());    // ✅ ADD THIS
                 parking.setStatus("Open");
                 parking.setCarPrice(0.0);
                 parking.setBikePrice(0.0);
