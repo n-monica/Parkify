@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | My Parking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sidebar-bg: #059669;
+      --accent: #10b981;
+      --accent-light: #d1fae5;
+      --accent-dark: #059669;
+      --bg: #ecfdf5;
+      --white: #ffffff;
+      --text-dark: #1a1a2e;
+      --text-mid: #4b5563;
+      --text-light: #9ca3af;
+      --border: #d1fae5;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: var(--sidebar-bg); min-height: 100vh; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 28px 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+    .logo-circle { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 3px solid #6ee7b7; display: flex; align-items: center; justify-content: center; }
+    .logo-circle span { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: #1a1a1a; }
+    .logo-name { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    .sidebar-menu { padding: 20px 0; flex: 1; }
+    .menu-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 24px; margin: 16px 0 8px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; border-left: 3px solid transparent; cursor: pointer; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .menu-item.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: #6ee7b7; font-weight: 600; }
+    .menu-icon { font-size: 18px; width: 22px; text-align: center; }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .admin-info { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; font-family: 'Nunito', sans-serif; border: 2px solid rgba(255,255,255,0.5); }
+    .admin-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .admin-role { font-size: 11px; color: rgba(255,255,255,0.5); }
+    .main { margin-left: 240px; flex: 1; padding: 32px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .page-title { font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+    .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .date-badge { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; font-size: 13px; color: var(--text-mid); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .logout-btn { background: #fff; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--accent-dark); cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .logout-btn:hover { background: var(--accent-light); }
+    .btn-add-parking { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; border-radius: 12px; padding: 10px 20px; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transition: all 0.2s; }
+    .btn-add-parking:hover { transform: translateY(-1px); }
+    .parking-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; margin-bottom: 28px; }
+    .parking-card { background: #fff; border-radius: 18px; padding: 28px; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .parking-card:hover { transform: translateY(-3px); }
+    .parking-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .parking-name { font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-dark); }
+    .parking-location { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+    .status-badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .status-open { background: #d1fae5; color: #059669; }
+    .status-closed { background: #fee2e2; color: #dc2626; }
+    .parking-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    .p-stat { background: var(--bg); border-radius: 12px; padding: 12px; text-align: center; }
+    .p-stat-num { font-family: 'Nunito', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-dark); }
+    .p-stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+    .parking-details { margin-bottom: 20px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--text-light); }
+    .detail-value { font-weight: 600; color: var(--text-dark); }
+    .location-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+    .location-tag.has-loc { background: #d1fae5; color: #059669; }
+    .location-tag.no-loc  { background: #fee2e2; color: #dc2626; }
+    .card-actions { display: flex; gap: 10px; }
+    .btn-edit { flex: 1; padding: 10px; border-radius: 25px; border: 1.5px solid var(--accent); background: white; color: var(--accent-dark); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.2s; }
+    .btn-edit:hover { background: var(--accent-light); }
+    .btn-toggle { flex: 1; padding: 10px; border-radius: 25px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transition: all 0.2s; }
+    .btn-toggle:hover { transform: translateY(-1px); }
+    .btn-toggle.closed { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 4px 14px rgba(220,38,38,0.3); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 20px; padding: 32px; width: 520px; max-width: 95vw; box-shadow: 0 24px 64px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 7px; }
+    .form-input { width: 100%; padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 13.5px; font-family: 'Poppins', sans-serif; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Location capture box */
+    .loc-capture-box { background: #f0fdf4; border: 1.5px solid #a7f3d0; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+    .loc-capture-title { font-size: 12px; font-weight: 700; color: #065f46; margin-bottom: 10px; }
+    .loc-coords-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .loc-coord-input { flex: 1; padding: 9px 12px; border: 1.5px solid #d1fae5; border-radius: 8px; font-size: 12px; font-family: 'Poppins', sans-serif; color: var(--text-dark); outline: none; background: white; }
+    .loc-coord-input:focus { border-color: var(--accent); }
+    .btn-capture-loc { width: 100%; padding: 10px; border-radius: 10px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-size: 12px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-capture-loc:hover { opacity: 0.9; }
+    .loc-status { font-size: 11px; margin-top: 8px; font-weight: 600; text-align: center; min-height: 16px; }
+    .loc-status.success { color: #059669; }
+    .loc-status.error   { color: #dc2626; }
+    .loc-status.loading { color: #f59e0b; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: 25px; border: 1.5px solid #e5e7eb; background: white; color: var(--text-mid); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
+    .btn-save { flex: 2; padding: 11px; border-radius: 25px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.3); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    .loading { text-align: center; padding: 40px; color: var(--text-light); font-size: 16px; }
+    .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.2); display: none; z-index: 999; }
+    .toast.success { background: #059669; color: white; }
+    .toast.error   { background: #dc2626; color: white; }
+    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 4px 0 16px; }
+    .section-heading { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><span>P</span></div>
+    <div class="logo-name">Parkify</div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-label">Main Menu</div>
+    <a class="menu-item" href="owner-dashboard.html"><span class="menu-icon">🏠</span> Dashboard</a>
+    <a class="menu-item active" href="owner-parking.html"><span class="menu-icon">🅿️</span> My Parking</a>
+    <a class="menu-item" href="owner-slots.html"><span class="menu-icon">🚗</span> Slot Management</a>
+    <a class="menu-item" href="owner-reports.html"><span class="menu-icon">📊</span> My Reports</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar" id="sidebarAvatar">O</div>
+      <div>
+        <div class="admin-name" id="sidebarName">Owner</div>
+        <div class="admin-role">Parking Owner</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">🅿️ My Parking</div>
+      <div class="page-subtitle">Manage your parking locations</div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-badge" id="dateBadge">📅 Loading...</div>
+      <button class="btn-add-parking" onclick="openAddModal()">➕ Add New Parking</button>
+      <a href="owner-login.html" class="logout-btn" onclick="localStorage.clear()">Logout</a>
+    </div>
+  </div>
+
+  <div class="parking-grid" id="parkingGrid">
+    <div class="loading">Loading your parking locations...</div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">✏️ Edit Parking Details</div>
+
+    <div class="section-heading">Basic Info</div>
+    <div class="form-group">
+      <label class="form-label">Parking Name *</label>
+      <input class="form-input" id="modalName" type="text" placeholder="e.g. Ebi Parking">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location / Address *</label>
+      <input class="form-input" id="modalLocation" type="text" placeholder="e.g. Arumbakkam, Chennai">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Car Price/hr (₹) *</label>
+        <input class="form-input" id="modalCar" type="number" min="0" placeholder="60">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bike Price/hr (₹) *</label>
+        <input class="form-input" id="modalBike" type="number" min="0" placeholder="30">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Operating Hours</label>
+      <input class="form-input" id="modalHours" type="text" placeholder="e.g. 8am-1pm or 24/7">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-input" id="modalStatus">
+        <option value="Open">Open</option>
+        <option value="Closed">Closed</option>
+        <option value="Full">Full</option>
+        <option value="Maintenance">Maintenance</option>
+      </select>
+    </div>
+
+    <hr class="section-divider">
+    <div class="section-heading">📍 Location on Map (required for nearest recommendation)</div>
+
+    <!-- Location capture box -->
+    <div class="loc-capture-box">
+      <div class="loc-capture-title">GPS Coordinates</div>
+      <div class="loc-coords-row">
+        <input class="loc-coord-input" id="modalLat" type="number" step="any" placeholder="Latitude (e.g. 13.0732)">
+        <input class="loc-coord-input" id="modalLng" type="number" step="any" placeholder="Longitude (e.g. 80.2109)">
+      </div>
+      <button class="btn-capture-loc" onclick="captureLocation()">
+        📍 Auto-detect My Location
+      </button>
+      <div class="loc-status" id="locStatus"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="btnSave" onclick="saveModal()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+  let currentParkingId = null; // null = adding new, number = editing existing
+  let parkings = [];
+
+  const ownerData = JSON.parse(localStorage.getItem('ownerData') || 'null');
+  const ownerId   = ownerData?.id   || localStorage.getItem('ownerId')   || 1;
+  const ownerName = ownerData?.name || localStorage.getItem('ownerName') || 'Owner';
+
+  document.getElementById('sidebarName').textContent   = ownerName;
+  document.getElementById('sidebarAvatar').textContent = ownerName.charAt(0).toUpperCase();
+  document.getElementById('dateBadge').textContent     =
+    '📅 ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  // ── Load parkings ──────────────────────────────────────────────────────────
+  async function loadParkings() {
+    const grid = document.getElementById('parkingGrid');
+    grid.innerHTML = '<div class="loading">Loading your parking locations...</div>';
+    try {
+      const res = await fetch(`${API}/parkings?ownerId=${ownerId}`);
+      if (!res.ok) throw new Error('API error');
+      parkings = await res.json();
+      if (!parkings || parkings.length === 0) {
+        grid.innerHTML = '<div class="loading">⚠️ No parking locations found. Click "Add New Parking" to get started.</div>';
+        return;
+      }
+      await Promise.all(parkings.map(async (p) => {
+        try {
+          const slotRes = await fetch(`${API}/slots?parkingId=${p.id}`);
+          if (slotRes.ok) {
+            const slots = await slotRes.json();
+            p._totalSlots = slots.length;
+            p._carSlots   = slots.filter(s => (s.type || '').toLowerCase() === 'car').length;
+            p._bikeSlots  = slots.filter(s => (s.type || '').toLowerCase() === 'bike').length;
+          } else { p._totalSlots = 0; p._carSlots = 0; p._bikeSlots = 0; }
+        } catch { p._totalSlots = 0; p._carSlots = 0; p._bikeSlots = 0; }
+      }));
+      renderParkings();
+    } catch (err) {
+      grid.innerHTML = '<div class="loading">❌ Could not load parking data. Make sure your backend is running.</div>';
+    }
+  }
+
+  // ── Render cards ──────────────────────────────────────────────────────────
+  function renderParkings() {
+    const grid = document.getElementById('parkingGrid');
+    grid.innerHTML = parkings.map(p => {
+      const isOpen   = (p.status || 'Open') === 'Open';
+      const hasCoords = p.lat && p.lng;
+      return `
+        <div class="parking-card">
+          <div class="parking-header">
+            <div>
+              <div class="parking-name">${p.name || 'Unnamed Parking'}</div>
+              <div class="parking-location">📍 ${p.location || '—'}</div>
+            </div>
+            <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}" id="badge-${p.id}">
+              ${p.status || 'Open'}
+            </span>
+          </div>
+          <div class="parking-stats">
+            <div class="p-stat"><div class="p-stat-num">${p._totalSlots}</div><div class="p-stat-label">Total Slots</div></div>
+            <div class="p-stat"><div class="p-stat-num">${p._carSlots}</div><div class="p-stat-label">Car Slots</div></div>
+            <div class="p-stat"><div class="p-stat-num">${p._bikeSlots}</div><div class="p-stat-label">Bike Slots</div></div>
+          </div>
+          <div class="parking-details">
+            <div class="detail-row">
+              <span class="detail-label">Car Price/hr</span>
+              <span class="detail-value">₹${p.carPrice || 0}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Bike Price/hr</span>
+              <span class="detail-value">₹${p.bikePrice || 0}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Operating Hours</span>
+              <span class="detail-value">${p.hours || 'Not set'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Map Location</span>
+              <span class="location-tag ${hasCoords ? 'has-loc' : 'no-loc'}">
+                ${hasCoords
+                  ? `✅ ${parseFloat(p.lat).toFixed(4)}, ${parseFloat(p.lng).toFixed(4)}`
+                  : '❌ Not set — map & nearby broken'}
+              </span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-edit" onclick="openEditModal(${p.id})">✏️ Edit Details</button>
+            <button class="btn-toggle ${isOpen ? '' : 'closed'}" id="toggleBtn-${p.id}" onclick="toggleStatus(${p.id})">
+              ${isOpen ? '🔴 Close Parking' : '🟢 Open Parking'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Open ADD modal (new parking) ──────────────────────────────────────────
+  function openAddModal() {
+    currentParkingId = null;
+    document.getElementById('modalTitle').textContent    = '➕ Add New Parking';
+    document.getElementById('modalName').value           = '';
+    document.getElementById('modalLocation').value       = '';
+    document.getElementById('modalCar').value            = '';
+    document.getElementById('modalBike').value           = '';
+    document.getElementById('modalHours').value          = '';
+    document.getElementById('modalStatus').value         = 'Open';
+    document.getElementById('modalLat').value            = '';
+    document.getElementById('modalLng').value            = '';
+    document.getElementById('locStatus').textContent     = '';
+    document.getElementById('locStatus').className       = 'loc-status';
+    document.getElementById('btnSave').textContent       = 'Add Parking';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  // ── Open EDIT modal (existing parking) ────────────────────────────────────
+  function openEditModal(parkingId) {
+    const p = parkings.find(x => x.id === parkingId);
+    if (!p) return;
+    currentParkingId = parkingId;
+    document.getElementById('modalTitle').textContent    = '✏️ Edit Parking Details';
+    document.getElementById('modalName').value           = p.name     || '';
+    document.getElementById('modalLocation').value       = p.location || '';
+    document.getElementById('modalCar').value            = p.carPrice  || '';
+    document.getElementById('modalBike').value           = p.bikePrice || '';
+    document.getElementById('modalHours').value          = p.hours    || '';
+    document.getElementById('modalStatus').value         = p.status   || 'Open';
+    document.getElementById('modalLat').value            = p.lat      || '';
+    document.getElementById('modalLng').value            = p.lng      || '';
+    document.getElementById('btnSave').textContent       = 'Save Changes';
+    // Show status of existing coords
+    if (p.lat && p.lng) {
+      setLocStatus(`✅ Saved: ${parseFloat(p.lat).toFixed(5)}, ${parseFloat(p.lng).toFixed(5)}`, 'success');
+    } else {
+      setLocStatus('⚠️ No location saved — click Auto-detect to fix', 'error');
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    currentParkingId = null;
+  }
+
+  // ── GPS capture ───────────────────────────────────────────────────────────
+  function captureLocation() {
+    if (!navigator.geolocation) {
+      setLocStatus('❌ Geolocation not supported by your browser', 'error');
+      return;
+    }
+    setLocStatus('⏳ Detecting your location...', 'loading');
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        document.getElementById('modalLat').value = lat.toFixed(6);
+        document.getElementById('modalLng').value = lng.toFixed(6);
+        setLocStatus(`✅ Location captured: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, 'success');
+      },
+      function(err) {
+        setLocStatus('❌ Could not get location. Allow location access and try again.', 'error');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  function setLocStatus(msg, type) {
+    const el = document.getElementById('locStatus');
+    el.textContent = msg;
+    el.className   = `loc-status ${type}`;
+  }
+
+  // ── Save modal (add OR edit) ──────────────────────────────────────────────
+  async function saveModal() {
+    const name     = document.getElementById('modalName').value.trim();
+    const location = document.getElementById('modalLocation').value.trim();
+    if (!name || !location) {
+      showToast('❌ Name and Location are required!', 'error');
+      return;
+    }
+
+    const lat = parseFloat(document.getElementById('modalLat').value) || null;
+    const lng = parseFloat(document.getElementById('modalLng').value) || null;
+
+    if (!lat || !lng) {
+      // Warn but don't block — they can fix later
+      if (!confirm('⚠️ No GPS coordinates set. This parking won\'t appear on the map or in nearest recommendations.\n\nSave anyway?')) return;
+    }
+
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const body = {
+      name,
+      location,
+      carPrice:  parseFloat(document.getElementById('modalCar').value)  || 0,
+      bikePrice: parseFloat(document.getElementById('modalBike').value) || 0,
+      hours:     document.getElementById('modalHours').value,
+      status:    document.getElementById('modalStatus').value,
+      lat,
+      lng,
+      ownerId:   Number(ownerId)
+    };
+
+    try {
+      let res;
+      if (currentParkingId) {
+        // UPDATE existing
+        res = await fetch(`${API}/parkings/${currentParkingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      } else {
+        // CREATE new
+        res = await fetch(`${API}/parkings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      }
+
+      if (!res.ok) throw new Error(await res.text());
+
+      closeModal();
+      showToast(currentParkingId ? '✅ Parking updated!' : '✅ New parking added!', 'success');
+      await loadParkings(); // Reload to reflect changes
+    } catch (e) {
+      showToast('❌ Failed to save. Try again.', 'error');
+      console.error(e);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = currentParkingId ? 'Save Changes' : 'Add Parking';
+    }
+  }
+
+  // ── Toggle open/closed ────────────────────────────────────────────────────
+  async function toggleStatus(parkingId) {
+    const p = parkings.find(x => x.id === parkingId);
+    if (!p) return;
+    const newStatus = (p.status || 'Open') === 'Open' ? 'Closed' : 'Open';
+    try {
+      const res = await fetch(`${API}/parkings/${parkingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) throw new Error();
+      p.status = newStatus;
+      renderParkings();
+      showToast(`✅ Parking ${newStatus.toLowerCase()}!`, 'success');
+    } catch {
+      showToast('❌ Failed to update status.', 'error');
+    }
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent   = msg;
+    t.className     = `toast ${type}`;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  loadParkings();
+</script>
+</body>
+</html>

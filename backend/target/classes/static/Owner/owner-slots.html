@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | Slot Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sidebar-bg: #059669; --accent: #10b981; --accent-light: #d1fae5;
+      --accent-dark: #059669; --bg: #ecfdf5; --white: #ffffff;
+      --text-dark: #1a1a2e; --text-mid: #4b5563; --text-light: #9ca3af; --border: #d1fae5;
+    }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 240px; background: var(--sidebar-bg); min-height: 100vh; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 28px 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+    .logo-circle { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 3px solid #6ee7b7; display: flex; align-items: center; justify-content: center; }
+    .logo-circle span { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: #1a1a1a; }
+    .logo-name { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    .sidebar-menu { padding: 20px 0; flex: 1; }
+    .menu-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 24px; margin: 16px 0 8px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; border-left: 3px solid transparent; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .menu-item.active { background: rgba(255,255,255,0.15); color: #fff; border-left-color: #6ee7b7; font-weight: 600; }
+    .menu-icon { font-size: 18px; width: 22px; text-align: center; }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .admin-info { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; font-family: 'Nunito', sans-serif; border: 2px solid rgba(255,255,255,0.5); }
+    .admin-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .admin-role { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; padding: 32px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .page-title { font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+    .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .date-badge { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; font-size: 13px; color: var(--text-mid); }
+    .logout-btn { background: #fff; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--accent-dark); cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .logout-btn:hover { background: var(--accent-light); }
+
+    /* ── TABS ── */
+    .parking-selector { display: flex; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+    .park-tab { padding: 10px 24px; border-radius: 25px; border: 1.5px solid var(--border); background: white; font-size: 13px; font-weight: 600; color: var(--text-mid); cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+    .park-tab.active { background: linear-gradient(135deg, #059669, #10b981); color: white; border-color: transparent; box-shadow: 0 4px 14px rgba(16,185,129,0.3); }
+
+    /* ── SUMMARY ── */
+    .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .sum-card { background: white; border-radius: 14px; padding: 18px 20px; border: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
+    .sum-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .sum-num { font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+    .sum-label { font-size: 12px; color: var(--text-light); }
+
+    /* ── SLOT SECTION ── */
+    .slot-section { background: white; border-radius: 18px; padding: 28px; border: 1px solid var(--border); box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+    .slot-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .slot-title { font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-dark); }
+    .slot-header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .legend { display: flex; gap: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-mid); font-weight: 500; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 4px; }
+    .dot-avail { background: #34d399; }
+    .dot-booked { background: #f87171; }
+    .dot-reserved { background: #fbbf24; }
+
+    .slot-type-label { font-size: 11px; font-weight: 700; color: var(--text-light); letter-spacing: 1px; text-transform: uppercase; margin: 20px 0 12px; }
+    .slot-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .slot { width: 72px; height: 72px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+    .slot:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+    .slot .slot-id { font-size: 13px; font-weight: 800; }
+    .slot .slot-status { font-size: 9px; opacity: 0.85; margin-top: 2px; }
+    .slot.available { background: linear-gradient(135deg, #34d399, #059669); }
+    .slot.booked    { background: linear-gradient(135deg, #f87171, #dc2626); }
+    .slot.reserved  { background: linear-gradient(135deg, #fbbf24, #d97706); }
+
+    /* ── BUTTONS ── */
+    .btn-add  { padding: 10px 20px; border-radius: 25px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transition: all 0.2s; }
+    .btn-add:hover { transform: translateY(-1px); }
+    .btn-bulk { padding: 10px 20px; border-radius: 25px; border: 1.5px solid var(--accent); background: white; color: var(--accent-dark); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.2s; }
+    .btn-bulk:hover { background: var(--accent-light); }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 20px; padding: 32px; width: 500px; max-width: 95vw; box-shadow: 0 24px 64px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+    .modal-subtitle { font-size: 12px; color: var(--text-light); margin-bottom: 22px; }
+
+    /* Mode toggle */
+    .mode-toggle { display: flex; background: #f3f4f6; border-radius: 12px; padding: 4px; margin-bottom: 22px; }
+    .mode-btn { flex: 1; padding: 9px; border: none; border-radius: 9px; font-size: 13px; font-weight: 600; font-family: 'Poppins', sans-serif; cursor: pointer; background: transparent; color: var(--text-mid); transition: all 0.2s; }
+    .mode-btn.active { background: white; color: var(--accent-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 7px; }
+    .form-input { width: 100%; padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 13.5px; font-family: 'Poppins', sans-serif; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+    select.form-input { cursor: pointer; }
+    textarea.form-input { resize: vertical; min-height: 70px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Bulk mode */
+    .bulk-hint { font-size: 12px; color: var(--text-mid); margin-bottom: 16px; background: #f0fdf4; padding: 10px 14px; border-radius: 10px; border-left: 3px solid var(--accent); line-height: 1.6; }
+    .bulk-preview { margin-top: 16px; }
+    .bulk-preview-label { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .preview-grid { display: flex; flex-wrap: wrap; gap: 8px; max-height: 130px; overflow-y: auto; padding: 4px 0; }
+    .preview-chip { padding: 5px 12px; border-radius: 20px; background: var(--accent-light); color: var(--accent-dark); font-size: 11px; font-weight: 700; }
+
+    /* Progress bar */
+    .progress-bar-wrap { height: 6px; background: #e5e7eb; border-radius: 99px; margin-top: 14px; display: none; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #059669, #10b981); border-radius: 99px; transition: width 0.2s; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .btn-cancel { flex: 1; padding: 11px; border-radius: 25px; border: 1.5px solid #e5e7eb; background: white; color: var(--text-mid); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
+    .btn-save   { flex: 1; padding: 11px; border-radius: 25px; border: none; background: linear-gradient(135deg, #059669, #10b981); color: white; font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.3); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .loading-msg { text-align: center; padding: 30px; color: var(--text-light); font-size: 14px; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.2); display: none; z-index: 999; }
+    .toast.success { background: #059669; color: white; }
+    .toast.error   { background: #dc2626; color: white; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><span>P</span></div>
+    <div class="logo-name">Parkify</div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-label">Main Menu</div>
+    <a class="menu-item" href="owner-dashboard.html"><span class="menu-icon">🏠</span> Dashboard</a>
+    <a class="menu-item" href="owner-parking.html"><span class="menu-icon">🅿️</span> My Parking</a>
+    <a class="menu-item active" href="owner-slots.html"><span class="menu-icon">🚗</span> Slot Management</a>
+    <a class="menu-item" href="owner-reports.html"><span class="menu-icon">📊</span> My Reports</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar" id="sidebarAvatar">O</div>
+      <div>
+        <div class="admin-name" id="sidebarName">Owner</div>
+        <div class="admin-role">Parking Owner</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">🚗 Slot Management</div>
+      <div class="page-subtitle">View and manage your parking slots</div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-badge" id="dateBadge">📅 ...</div>
+      <a href="owner-login.html" class="logout-btn" onclick="localStorage.clear()">Logout</a>
+    </div>
+  </div>
+
+  <!-- PARKING TABS -->
+  <div class="parking-selector" id="parkingSelector">
+    <div class="loading-msg">Loading parkings...</div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-row">
+    <div class="sum-card">
+      <div class="sum-icon" style="background:#d1fae5;">🔲</div>
+      <div><div class="sum-num" id="totalSlots">—</div><div class="sum-label">Total Slots</div></div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-icon" style="background:#d1fae5;">✅</div>
+      <div><div class="sum-num" id="availSlots">—</div><div class="sum-label">Available</div></div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-icon" style="background:#fee2e2;">🚫</div>
+      <div><div class="sum-num" id="bookedSlots">—</div><div class="sum-label">Booked</div></div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-icon" style="background:#fef3c7;">⏳</div>
+      <div><div class="sum-num" id="resSlots">—</div><div class="sum-label">Reserved</div></div>
+    </div>
+  </div>
+
+  <!-- SLOT GRID SECTION -->
+  <div class="slot-section">
+    <div class="slot-header">
+      <div class="slot-title" id="slotSectionTitle">Select a parking above</div>
+      <div class="slot-header-right">
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot dot-avail"></div> Available</div>
+          <div class="legend-item"><div class="legend-dot dot-booked"></div> Booked</div>
+          <div class="legend-item"><div class="legend-dot dot-reserved"></div> Reserved</div>
+        </div>
+        <button class="btn-bulk" onclick="openModal('bulk')">⚡ Bulk Add</button>
+        <button class="btn-add"  onclick="openModal('single')">+ Add Slot</button>
+      </div>
+    </div>
+    <div id="slotContent">
+      <div class="loading-msg">Select a parking to view its slots.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADD SLOT MODAL ══════════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">➕ Add Parking Slot</div>
+    <div class="modal-subtitle" id="modalSubtitle">Adding to: —</div>
+
+    <!-- Single / Bulk mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btnModeSingle" onclick="setMode('single')">🚗 Single Slot</button>
+      <button class="mode-btn"        id="btnModeBulk"   onclick="setMode('bulk')">⚡ Bulk Add</button>
+    </div>
+
+    <!-- ── SINGLE FORM ── -->
+    <div id="singleForm">
+      <div class="form-group">
+        <label class="form-label">Slot Number / Name *</label>
+        <input class="form-input" id="slotNumber" type="text" placeholder="e.g. C13, B9, A-01">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Vehicle Type *</label>
+          <select class="form-input" id="slotType">
+            <option value="car">🚗 Car</option>
+            <option value="bike">🏍️ Bike</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Initial Status</label>
+          <select class="form-input" id="slotStatus">
+            <option value="available">✅ Available</option>
+            <option value="reserved">⏳ Reserved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description / Notes</label>
+        <textarea class="form-input" id="slotNotes" placeholder="e.g. Near entrance, Covered, EV charging..."></textarea>
+      </div>
+    </div>
+
+    <!-- ── BULK FORM ── -->
+    <div id="bulkForm" style="display:none;">
+      <div class="bulk-hint">
+        💡 Enter a prefix and number range to auto-generate slot names.<br>
+        Example: Prefix <strong>C</strong>, from <strong>13</strong> to <strong>20</strong> → creates C13, C14 … C20
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Slot Prefix *</label>
+          <input class="form-input" id="bulkPrefix" type="text" placeholder="e.g. C, B, A" oninput="updateBulkPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle Type *</label>
+          <select class="form-input" id="bulkType" onchange="updateBulkPreview()">
+            <option value="car">🚗 Car</option>
+            <option value="bike">🏍️ Bike</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Number *</label>
+          <input class="form-input" id="bulkStart" type="number" min="1" placeholder="1" oninput="updateBulkPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Number *</label>
+          <input class="form-input" id="bulkEnd" type="number" min="1" placeholder="10" oninput="updateBulkPreview()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Initial Status (all slots)</label>
+        <select class="form-input" id="bulkStatus">
+          <option value="available">✅ Available</option>
+          <option value="reserved">⏳ Reserved</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes (applied to all slots)</label>
+        <input class="form-input" id="bulkNotes" type="text" placeholder="e.g. Level 2, Covered parking, Near lift">
+      </div>
+
+      <!-- Live preview -->
+      <div class="bulk-preview" id="bulkPreview" style="display:none;">
+        <div class="bulk-preview-label">Preview — <span id="previewCount">0</span> slots will be created</div>
+        <div class="preview-grid" id="previewGrid"></div>
+      </div>
+
+      <!-- Progress bar shown while saving -->
+      <div class="progress-bar-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="btnSave" onclick="saveSlot()">Add Slot</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+
+  // ── Owner from localStorage ──
+  const ownerData = JSON.parse(localStorage.getItem('ownerData') || localStorage.getItem('owner') || 'null');
+  const ownerId   = ownerData?.id   || localStorage.getItem('ownerId')   || 1;
+  const ownerName = ownerData?.name || localStorage.getItem('ownerName') || 'Owner';
+
+  document.getElementById('sidebarName').textContent   = ownerName;
+  document.getElementById('sidebarAvatar').textContent = ownerName.charAt(0).toUpperCase();
+  document.getElementById('dateBadge').textContent     = '📅 ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  let parkings          = [];
+  let currentParkingIdx = 0;
+  let currentMode       = 'single';
+
+  // ── Field normalizers ──
+  const normalize = s => {
+    const raw = (s.status || s.slotStatus || 'available').toLowerCase();
+    if (raw.includes('book'))   return 'booked';
+    if (raw.includes('reserv')) return 'reserved';
+    return 'available';
+  };
+  const getType = s => {
+    const raw = (s.type || s.slotType || s.vehicleType || '').toLowerCase();
+    return (raw.includes('bike') || raw.includes('motor')) ? 'bike' : 'car';
+  };
+
+  // ── Load parkings ──
+  async function loadParkings() {
+    try {
+      const res = await fetch(`${API}/parkings?ownerId=${ownerId}`);
+      if (!res.ok) throw new Error();
+      parkings = await res.json();
+
+      const sel = document.getElementById('parkingSelector');
+      if (!parkings.length) {
+        sel.innerHTML = '<div class="loading-msg">No parking locations found.</div>';
+        return;
+      }
+      sel.innerHTML = parkings.map((p, i) =>
+        `<button class="park-tab ${i === 0 ? 'active' : ''}" onclick="switchParking(${i}, this)">🅿️ ${p.name}</button>`
+      ).join('');
+
+      await loadSlots(parkings[0]);
+    } catch {
+      document.getElementById('parkingSelector').innerHTML =
+        '<div class="loading-msg">❌ Could not load parkings. Is your backend running?</div>';
+    }
+  }
+
+  // ── Load slots for selected parking ──
+  async function loadSlots(parking) {
+    document.getElementById('slotSectionTitle').textContent = `${parking.name} — Slots`;
+    document.getElementById('slotContent').innerHTML        = '<div class="loading-msg">Loading slots...</div>';
+    ['totalSlots','availSlots','bookedSlots','resSlots'].forEach(id =>
+      document.getElementById(id).textContent = '—'
+    );
+
+    try {
+      const res = await fetch(`${API}/slots?parkingId=${parking.id}`);
+      if (!res.ok) throw new Error();
+      const slots = await res.json();
+
+      const carSlots  = slots.filter(s => getType(s) === 'car');
+      const bikeSlots = slots.filter(s => getType(s) === 'bike');
+
+      document.getElementById('totalSlots').textContent  = slots.length;
+      document.getElementById('availSlots').textContent  = slots.filter(s => normalize(s) === 'available').length;
+      document.getElementById('bookedSlots').textContent = slots.filter(s => normalize(s) === 'booked').length;
+      document.getElementById('resSlots').textContent    = slots.filter(s => normalize(s) === 'reserved').length;
+
+      const buildGrid = (list, label) => {
+        if (!list.length) return '';
+        return `
+          <div class="slot-type-label">${label}</div>
+          <div class="slot-grid">
+            ${list.map(s => {
+              const st  = normalize(s);
+              const lbl = s.slotNumber || s.slotName || s.name || s.id || '?';
+              const tip = s.description || s.notes || st;
+              return `<div class="slot ${st}" title="${tip}" onclick="showToast('${lbl} — ${st}')">
+                        <span class="slot-id">${lbl}</span>
+                        <span class="slot-status">${st}</span>
+                      </div>`;
+            }).join('')}
+          </div>`;
+      };
+
+      const html = buildGrid(carSlots, '🚗 CAR SLOTS') + buildGrid(bikeSlots, '🏍️ BIKE SLOTS');
+      document.getElementById('slotContent').innerHTML =
+        html || '<div class="loading-msg">No slots yet — click <strong>+ Add Slot</strong> or <strong>⚡ Bulk Add</strong> to get started!</div>';
+    } catch {
+      document.getElementById('slotContent').innerHTML =
+        '<div class="loading-msg">❌ Could not load slots.</div>';
+    }
+  }
+
+  async function switchParking(idx, btn) {
+    currentParkingIdx = idx;
+    document.querySelectorAll('.park-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    await loadSlots(parkings[idx]);
+  }
+
+  // ══════════════════════════════════════
+  //   MODAL LOGIC
+  // ══════════════════════════════════════
+  function openModal(mode) {
+    if (!parkings.length) { showToast('No parking selected!', 'error'); return; }
+    const p = parkings[currentParkingIdx];
+    document.getElementById('modalSubtitle').textContent = `Adding to: ${p.name}`;
+    resetModal();
+    setMode(mode);
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    resetModal();
+  }
+
+  function resetModal() {
+    document.getElementById('slotNumber').value = '';
+    document.getElementById('slotType').value   = 'car';
+    document.getElementById('slotStatus').value = 'available';
+    document.getElementById('slotNotes').value  = '';
+    document.getElementById('bulkPrefix').value = '';
+    document.getElementById('bulkStart').value  = '';
+    document.getElementById('bulkEnd').value    = '';
+    document.getElementById('bulkStatus').value = 'available';
+    document.getElementById('bulkNotes').value  = '';
+    document.getElementById('bulkPreview').style.display  = 'none';
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('progressBar').style.width    = '0%';
+    const btn = document.getElementById('btnSave');
+    btn.disabled    = false;
+    btn.textContent = 'Add Slot';
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('singleForm').style.display   = mode === 'single' ? 'block' : 'none';
+    document.getElementById('bulkForm').style.display     = mode === 'bulk'   ? 'block' : 'none';
+    document.getElementById('btnModeSingle').classList.toggle('active', mode === 'single');
+    document.getElementById('btnModeBulk').classList.toggle('active',   mode === 'bulk');
+    document.getElementById('btnSave').textContent        = mode === 'bulk' ? 'Add All Slots' : 'Add Slot';
+  }
+
+  // ── Bulk live preview ──
+  function updateBulkPreview() {
+    const prefix = document.getElementById('bulkPrefix').value.trim();
+    const start  = parseInt(document.getElementById('bulkStart').value);
+    const end    = parseInt(document.getElementById('bulkEnd').value);
+    const preview = document.getElementById('bulkPreview');
+
+    if (!prefix || isNaN(start) || isNaN(end) || start > end || (end - start) > 99) {
+      preview.style.display = 'none';
+      return;
+    }
+
+    const names = [];
+    for (let i = start; i <= end; i++) names.push(`${prefix}${i}`);
+    document.getElementById('previewCount').textContent = names.length;
+    document.getElementById('previewGrid').innerHTML    = names.map(n => `<div class="preview-chip">${n}</div>`).join('');
+    preview.style.display = 'block';
+  }
+
+  // ══════════════════════════════════════
+  //   SAVE — dispatches to single or bulk
+  // ══════════════════════════════════════
+  async function saveSlot() {
+    currentMode === 'single' ? await saveSingle() : await saveBulk();
+  }
+
+  async function saveSingle() {
+    const slotNumber = document.getElementById('slotNumber').value.trim();
+    if (!slotNumber) { showToast('Please enter a slot number!', 'error'); return; }
+
+    const parking = parkings[currentParkingIdx];
+    const type    = document.getElementById('slotType').value;
+    const status  = document.getElementById('slotStatus').value;
+    const notes   = document.getElementById('slotNotes').value.trim();
+
+    // Send all common field name variants for backend compatibility
+    const payload = {
+      slotNumber, name: slotNumber,
+      type, slotType: type, vehicleType: type,
+      status, slotStatus: status,
+      notes, description: notes,
+      parkingId: parking.id
+    };
+
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    try {
+      const res = await fetch(`${API}/slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error();
+      closeModal();
+      showToast(`✅ Slot ${slotNumber} added!`, 'success');
+      await loadSlots(parking);
+    } catch {
+      showToast('❌ Failed to add slot. Check your backend.', 'error');
+      btn.disabled = false; btn.textContent = 'Add Slot';
+    }
+  }
+
+  async function saveBulk() {
+    const prefix = document.getElementById('bulkPrefix').value.trim();
+    const start  = parseInt(document.getElementById('bulkStart').value);
+    const end    = parseInt(document.getElementById('bulkEnd').value);
+
+    if (!prefix || isNaN(start) || isNaN(end)) { showToast('Fill in prefix, start, and end!', 'error'); return; }
+    if (start > end)       { showToast('Start must be ≤ End!', 'error'); return; }
+    if (end - start > 99)  { showToast('Max 100 slots at once!', 'error'); return; }
+
+    const parking = parkings[currentParkingIdx];
+    const type    = document.getElementById('bulkType').value;
+    const status  = document.getElementById('bulkStatus').value;
+    const notes   = document.getElementById('bulkNotes').value.trim();
+    const total   = end - start + 1;
+
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true; btn.textContent = `Adding 0 / ${total}...`;
+
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar  = document.getElementById('progressBar');
+    progressWrap.style.display = 'block';
+
+    let ok = 0, fail = 0;
+
+    for (let i = start; i <= end; i++) {
+      const slotNumber = `${prefix}${i}`;
+      const payload = {
+        slotNumber, name: slotNumber,
+        type, slotType: type, vehicleType: type,
+        status, slotStatus: status,
+        notes, description: notes,
+        parkingId: parking.id
+      };
+      try {
+        const res = await fetch(`${API}/slots`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        res.ok ? ok++ : fail++;
+      } catch { fail++; }
+
+      const done = i - start + 1;
+      progressBar.style.width = `${Math.round((done / total) * 100)}%`;
+      btn.textContent = `Adding ${done} / ${total}...`;
+    }
+
+    closeModal();
+    if (fail === 0) showToast(`✅ ${ok} slots added successfully!`, 'success');
+    else            showToast(`⚠️ ${ok} added, ${fail} failed.`, 'error');
+    await loadSlots(parking);
+  }
+
+  // ── Backdrop click closes modal ──
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent   = msg;
+    t.className     = `toast ${type}`;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  loadParkings();
+</script>
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-light: #f0fdf4;
+      --green-soft: #dcfce7;
+      --green-mid: #86efac;
+      --green-main: #16a34a;
+      --green-dark: #14532d;
+      --sidebar-bg: #14532d;
+      --white: #ffffff;
+      --text-dark: #1a1a2e;
+      --text-mid: #4b5563;
+      --text-light: #9ca3af;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0fdf4;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px; background: var(--sidebar-bg);
+      min-height: 100vh; display: flex; flex-direction: column;
+      position: fixed; left: 0; top: 0; z-index: 100;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 12px;
+      padding: 28px 24px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .logo-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; border: 3px solid #4ade80;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-circle span { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: #1a1a1a; }
+    .logo-name { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    .logo-name em { font-style: normal; color: #86efac; }
+    .sidebar-menu { padding: 20px 0; flex: 1; }
+    .menu-label {
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 0 24px; margin: 16px 0 8px;
+    }
+    .menu-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 24px; color: rgba(255,255,255,0.65);
+      text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: all 0.2s ease; border-left: 3px solid transparent;
+    }
+    .menu-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .menu-item.active { background: rgba(74,222,128,0.15); color: #4ade80; border-left-color: #4ade80; }
+    .menu-icon { font-size: 18px; width: 22px; text-align: center; }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .admin-info { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #fff; font-family: 'Nunito',sans-serif;
+    }
+    .admin-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .admin-role { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+    /* MAIN */
+    .main { margin-left: 240px; flex: 1; padding: 32px; }
+
+    .topbar {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 32px;
+    }
+    .page-title { font-family: 'Nunito',sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+    .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .date-badge {
+      background: #fff; border: 1px solid #dcfce7; border-radius: 10px;
+      padding: 8px 14px; font-size: 13px; color: var(--text-mid);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .logout-btn {
+      background: #fff; border: 1.5px solid #bbf7d0; border-radius: 10px;
+      padding: 8px 16px; font-size: 13px; font-weight: 600;
+      color: var(--green-main); cursor: pointer; text-decoration: none; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: var(--green-soft); }
+
+    /* STAT CARDS */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 20px; margin-bottom: 28px;
+    }
+    .stat-card {
+      background: #fff; border-radius: 18px; padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 1px solid #dcfce7;
+      display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; }
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .stat-icon.green  { background: #dcfce7; }
+    .stat-icon.blue   { background: #dbeafe; }
+    .stat-icon.orange { background: #ffedd5; }
+    .stat-icon.purple { background: #ede9fe; }
+    .stat-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+    .stat-badge.up   { background: #dcfce7; color: #16a34a; }
+    .stat-badge.warn { background: #fef9c3; color: #ca8a04; }
+    .stat-num { font-family: 'Nunito',sans-serif; font-size: 32px; font-weight: 800; color: var(--text-dark); line-height: 1; }
+    .stat-label { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+
+    /* CHARTS */
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .chart-card {
+      background: #fff; border-radius: 18px; padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 1px solid #dcfce7;
+    }
+    .card-title { font-family: 'Nunito',sans-serif; font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 20px; }
+
+    /* TABLE CARD */
+    .table-card {
+      background: #fff; border-radius: 18px; padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 1px solid #dcfce7;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 20px;
+    }
+    .view-all { font-size: 13px; font-weight: 600; color: var(--green-main); text-decoration: none; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th {
+      font-size: 12px; font-weight: 700; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 10px 14px; text-align: left; border-bottom: 1px solid #f3f4f6;
+      white-space: nowrap;
+    }
+    td { padding: 14px; font-size: 13px; color: var(--text-mid); border-bottom: 1px solid #f9fafb; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f0fdf4; }
+
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .status-badge.active  { background: #dcfce7; color: #16a34a; }
+    .status-badge.full    { background: #fee2e2; color: #dc2626; }
+    .status-badge.partial { background: #fef9c3; color: #ca8a04; }
+    .status-badge.pending { background: #fef9c3; color: #ca8a04; }
+
+    /* APPROVAL BUTTONS */
+    .btn-approve {
+      background: #dcfce7; color: #16a34a; border: 1px solid #86efac;
+      border-radius: 8px; padding: 5px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; margin-right: 6px; transition: background 0.2s;
+    }
+    .btn-approve:hover { background: #bbf7d0; }
+    .btn-reject {
+      background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;
+      border-radius: 8px; padding: 5px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-reject:hover { background: #fecaca; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      padding: 12px 22px; border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+      display: none; z-index: 999; font-family: 'Nunito',sans-serif;
+    }
+    .toast.success { background: #16a34a; color: #fff; }
+    .toast.error   { background: #dc2626; color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><span>P</span></div>
+    <div class="logo-name">Park<em>ify</em></div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-label">Main Menu</div>
+    <a class="menu-item active" href="dashboard.html"><span class="menu-icon">🏠</span> Dashboard</a>
+    <a class="menu-item" href="parkings.html"><span class="menu-icon">🅿️</span> Parking Management</a>
+    <a class="menu-item" href="slots.html"><span class="menu-icon">🚗</span> Slot Management</a>
+    <a class="menu-item" href="reports.html"><span class="menu-icon">📊</span> Booking Reports</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar">A</div>
+      <div>
+        <div class="admin-name">Admin</div>
+        <div class="admin-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle">Welcome back, Admin! Here's what's happening today.</div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-badge">📅 &nbsp;<span id="todayDate"></span></div>
+      <a href="login.html" class="logout-btn">Logout</a>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-top">
+        <div class="stat-icon green">🅿️</div>
+        <span class="stat-badge up" id="parkingBadge">Loading...</span>
+      </div>
+      <div>
+        <div class="stat-num" id="statParkings">—</div>
+        <div class="stat-label">Total Parkings</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-top">
+        <div class="stat-icon blue">🚗</div>
+        <span class="stat-badge up" id="slotBadge">Loading...</span>
+      </div>
+      <div>
+        <div class="stat-num" id="statSlots">—</div>
+        <div class="stat-label">Total Slots</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-top">
+        <div class="stat-icon orange">📋</div>
+        <span class="stat-badge up">Total</span>
+      </div>
+      <div>
+        <div class="stat-num" id="statBookings">—</div>
+        <div class="stat-label">Total Bookings</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-top">
+        <div class="stat-icon purple">👤</div>
+        <span class="stat-badge warn" id="pendingBadge">Loading...</span>
+      </div>
+      <div>
+        <div class="stat-num" id="statPending">—</div>
+        <div class="stat-label">Pending Approvals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="card-title">📈 Monthly Bookings</div>
+      <canvas id="bookingsChart" height="100"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">🚗 Slot Status</div>
+      <canvas id="slotChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Recent Parkings -->
+  <div class="table-card">
+    <div class="card-header">
+      <div class="card-title" style="margin:0">🅿️ Recent Parkings</div>
+      <a class="view-all" href="parkings.html">View All →</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Parking Name</th>
+            <th>Location</th>
+            <th>Owner ID</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="parkingsTable">
+          <tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:24px">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pending Owner Approvals -->
+  <div class="table-card">
+    <div class="card-header">
+      <div class="card-title" style="margin:0">👤 Pending Owner Approvals</div>
+      <span id="approvalCountBadge" class="status-badge pending">Loading...</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name / Email</th>
+            <th>Phone</th>
+            <th>Aadhaar / PAN</th>
+            <th>Parking Name</th>
+            <th>Address</th>
+            <th>City</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="pendingOwnersTable">
+          <tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:24px">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+
+  // Today's date
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric'
+  });
+
+  // ── LOAD ALL ──
+  async function loadDashboard() {
+    await Promise.all([loadParkings(), loadBookings(), loadPendingOwners()]);
+  }
+
+  // ── PARKINGS ──
+  async function loadParkings() {
+    try {
+      const res = await fetch(`${API}/parkings`);
+      const parkings = await res.json();
+
+      document.getElementById('statParkings').textContent = parkings.length;
+      document.getElementById('parkingBadge').textContent = `${parkings.length} total`;
+
+      // Slot count
+      let totalSlots = 0;
+      for (const p of parkings) {
+        try {
+          const sr = await fetch(`${API}/slots?parkingId=${p.id}`);
+          if (sr.ok) { const slots = await sr.json(); totalSlots += slots.length; }
+        } catch {}
+      }
+      document.getElementById('statSlots').textContent = totalSlots || '0';
+      document.getElementById('slotBadge').textContent = `${totalSlots} total`;
+
+      // Recent parkings table
+      const recent = parkings.slice(-5).reverse();
+      document.getElementById('parkingsTable').innerHTML = recent.length === 0
+        ? `<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:24px">No parkings found</td></tr>`
+        : recent.map((p, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td><b>${p.name}</b></td>
+              <td>📍 ${p.location || '—'}</td>
+              <td>${p.ownerId || '—'}</td>
+              <td><span class="status-badge ${getStatusClass(p.status)}">${p.status || 'Unknown'}</span></td>
+            </tr>
+          `).join('');
+
+      // Slot donut chart
+      const available = parkings.filter(p => ['open','available'].includes((p.status||'').toLowerCase())).length;
+      const full      = parkings.filter(p => (p.status||'').toLowerCase() === 'full').length;
+      const other     = parkings.length - available - full;
+      renderSlotChart(available, full, other);
+
+    } catch {
+      document.getElementById('parkingsTable').innerHTML =
+        `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:24px">⚠️ Could not load parkings</td></tr>`;
+    }
+  }
+
+  // ── BOOKINGS ──
+  async function loadBookings() {
+    try {
+      const res = await fetch(`${API}/bookings`);
+      const bookings = await res.json();
+      document.getElementById('statBookings').textContent = bookings.length;
+      renderBookingsChart(bookings);
+    } catch {
+      document.getElementById('statBookings').textContent = '0';
+      renderBookingsChart([]);
+    }
+  }
+
+  // ── PENDING OWNERS ──
+  async function loadPendingOwners() {
+    try {
+      const res = await fetch(`${API}/owners/pending`);
+      const owners = await res.json();
+
+      document.getElementById('statPending').textContent = owners.length;
+      document.getElementById('pendingBadge').textContent = `${owners.length} pending`;
+      document.getElementById('approvalCountBadge').textContent = `${owners.length} Pending`;
+
+      document.getElementById('pendingOwnersTable').innerHTML = owners.length === 0
+        ? `<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:24px">✅ No pending approvals</td></tr>`
+        : owners.map((o, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>
+                <b>${o.name}</b><br>
+                <span style="font-size:11px;color:#9ca3af">${o.email}</span>
+              </td>
+              <td>${o.phone || '—'}</td>
+              <td>${o.idProof || '—'}</td>
+              <td><b>${o.parkingName || '—'}</b></td>
+              <td>${o.parkingAddress || '—'}</td>
+              <td>${o.city || '—'}</td>
+              <td>
+                <button class="btn-approve" onclick="approveOwner(${o.id})">✅ Approve</button>
+                <button class="btn-reject"  onclick="rejectOwner(${o.id})">❌ Reject</button>
+              </td>
+            </tr>
+          `).join('');
+    } catch {
+      document.getElementById('pendingOwnersTable').innerHTML =
+        `<tr><td colspan="8" style="text-align:center;color:#dc2626;padding:24px">⚠️ Could not load pending owners</td></tr>`;
+    }
+  }
+async function approveOwner(id) {
+  try {
+    const approveRes = await fetch(`${API}/owners/${id}/approve`, { method: 'PUT' });
+    if (!approveRes.ok) throw new Error('Approval failed');
+
+    const ownerRes = await fetch(`${API}/owners/${id}`);
+    const owner = await ownerRes.json();
+
+    // Check if parking already exists for this owner
+    const existingRes = await fetch(`${API}/parkings?ownerId=${owner.id}`);
+    const existingParkings = await existingRes.json();
+
+    if (existingParkings.length > 0) {
+      showToast('✅ Owner approved! Parking already exists.', 'success');
+      loadPendingOwners();
+      return;
+    }
+
+    // Only create parking if none exists
+    const parkingRes = await fetch(`${API}/parkings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: owner.parkingName,
+        location: owner.parkingAddress,
+        city: owner.city,
+        ownerId: owner.id,
+        status: 'Open',
+        carPrice: 0,
+        bikePrice: 0,
+        hours: '24/7',
+        lat: owner.lat,
+        lng: owner.lng
+      })
+    });
+
+    if (parkingRes.ok) {
+      showToast('✅ Owner approved and parking created!', 'success');
+    } else {
+      showToast('✅ Owner approved! But parking creation failed — add manually.', 'success');
+    }
+    loadPendingOwners();
+  } catch {
+    showToast('❌ Failed to approve', 'error');
+  }
+}
+  
+  async function rejectOwner(id) {
+    if (!confirm('Are you sure you want to reject this owner?')) return;
+    try {
+      await fetch(`${API}/owners/${id}/reject`, { method: 'PUT' });
+      showToast('Owner rejected.', 'success');
+      loadPendingOwners();
+    } catch {
+      showToast('❌ Failed to reject', 'error');
+    }
+  }
+
+  // ── CHARTS ──
+  function renderBookingsChart(bookings) {
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const counts = Array(12).fill(0);
+    bookings.forEach(b => {
+      if (b.bookingDate) counts[new Date(b.bookingDate).getMonth()]++;
+    });
+    const now = new Date().getMonth();
+    const labels = [], data = [];
+    for (let i = 5; i >= 0; i--) {
+      const idx = (now - i + 12) % 12;
+      labels.push(months[idx]);
+      data.push(counts[idx]);
+    }
+    new Chart(document.getElementById('bookingsChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Bookings',
+          data,
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,0.1)',
+          borderWidth: 3,
+          pointBackgroundColor: '#16a34a',
+          pointRadius: 5,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { grid: { color: '#f3f4f6' }, beginAtZero: true },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderSlotChart(available, full, other) {
+    new Chart(document.getElementById('slotChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Available', 'Full', 'Other'],
+        datasets: [{
+          data: [available || 0, full || 0, other || 0],
+          backgroundColor: ['#4ade80', '#f87171', '#fbbf24'],
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '70%',
+        plugins: { legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } } }
+      }
+    });
+  }
+
+  function getStatusClass(status) {
+    if (!status) return 'partial';
+    const s = status.toLowerCase();
+    if (s === 'open' || s === 'available') return 'active';
+    if (s === 'full') return 'full';
+    return 'partial';
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type}`;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  loadDashboard();
+</script>
+
+</body>
+</html>
