@@ -287,12 +287,14 @@
     const rawLng = p.lng ?? p.longitude ?? p.parkingLng ?? p.parking_lng ?? null;
     const lat = rawLat !== null ? parseFloat(rawLat) : null;
     const lng = rawLng !== null ? parseFloat(rawLng) : null;
+    
     // Only treat as valid if BOTH exist, are non-zero, and are real numbers
     const validCoords = lat && lng && !isNaN(lat) && !isNaN(lng) && (Math.abs(lat) > 0.001) && (Math.abs(lng) > 0.001);
     return {
       ...p,
       lat: validCoords ? lat : null,
       lng: validCoords ? lng : null,
+     status: (p.status && p.status.toLowerCase() === 'closed') ? 'closed' : 'open',
       carPrice:  Number(p.carPrice  || p.carPricePerHour  || p.car_price  || 0),
       bikePrice: Number(p.bikePrice || p.bikePricePerHour || p.bike_price || 0),
       name:      p.name     || p.parkingName    || 'Unnamed Parking',
@@ -347,13 +349,16 @@
     const a = p.availableSlots || 0;
     return a === 0 ? '#dc2626' : a <= 3 ? '#f59e0b' : '#16a34a';
   }
-
-  function getStatusLabel(p) {
-    const a = p.availableSlots || 0;
-    if (a === 0) return { label:'Full',    cls:'full'    };
-    if (a <= 3)  return { label:'Limited', cls:'limited' };
-    return               { label:'Open',   cls:'open'    };
+function getStatusLabel(p) {
+  if (p.status && p.status.toLowerCase() === 'closed') {
+    return { label: 'Closed', cls: 'full' };
   }
+
+  const a = p.availableSlots || 0;
+  if (a === 0) return { label:'Full', cls:'full' };
+  if (a <= 3) return { label:'Limited', cls:'limited' };
+  return { label:'Open', cls:'open' };
+}
 
   // ── Location ───────────────────────────────────────────────────────────────
   function locateMe() {
@@ -513,9 +518,11 @@
             <div class="pc-price">🚗 <strong>₹${p.carPrice||0}/hr</strong> &nbsp; 🏍️ <strong>₹${p.bikePrice||0}/hr</strong></div>
             <div style="display:flex;align-items:center;gap:6px;">
               <button class="btn-route" onclick="event.stopPropagation();routeClick(${pJson})">🗺️ Route</button>
-              ${p.availableSlots > 0
-                ? `<button class="btn-book" onclick="event.stopPropagation();openBooking(${pJson})">Book →</button>`
-                : `<span style="font-size:11px;color:#dc2626;font-weight:700;">Full</span>`}
+              ${p.status === 'closed'
+  ? `<span style="font-size:11px;color:#dc2626;font-weight:700;">Closed</span>`
+  : p.availableSlots > 0
+    ? `<button class="btn-book" onclick="event.stopPropagation();openBooking(${pJson})">Book →</button>`
+    : `<span style="font-size:11px;color:#dc2626;font-weight:700;">Full</span>`}
             </div>
           </div>
         </div>`;
@@ -649,6 +656,24 @@
     if (bookingStep===2 && !bookingData.vehicleNumber.trim()) { showToast('🚘 Enter your vehicle number!','error'); return; }
     bookingStep++; renderBookingStep();
   }
+  async function refreshSlotsOnly() {
+  try {
+    for (let p of allParkings) {
+      const res = await fetch(`${API}/slots?parkingId=${p.id}`);
+      if (res.ok) {
+        const slots = await res.json();
+        p.availableSlots = slots.filter(s =>
+          s.status?.toLowerCase() === 'available'
+        ).length;
+      }
+    }
+
+    filterParkings(); // update UI properly
+
+  } catch (e) {
+    console.log("Refresh error", e);
+  }
+}
 
   async function confirmBooking() {
     const btn=document.getElementById('btnConfirm'); btn.disabled=true; btn.textContent='Booking...';
@@ -751,8 +776,17 @@
   // ── Startup ────────────────────────────────────────────────────────────────
   initMap(DEFAULT_LAT, DEFAULT_LNG);
   locateMe();
+ 
+
+// 🔥 FORCE LOAD (IMPORTANT FIX)
+setTimeout(() => {
+  if (allParkings.length === 0) {
+    console.log("Fallback: loading parkings manually");
+    loadParkings();
+  }
+}, 3000);
   if (activeBooking&&activeBooking.checkedIn&&String(activeBooking.userId)===String(userId)) showCurrentBooking();
-  setInterval(()=>loadParkings(), 15000);
+   //setInterval(()=>loadParkings(), 15000);
 </script>
 </body>
 </html>
