@@ -25,7 +25,7 @@ public class SlotController {
     }
 
     // TEMPORARY - fix slot types based on slot number prefix
-    // Visit: http://localhost:8080/api/slots/fix-types once, then remove this
+    // Visit: /api/slots/fix-types once, then remove this
     @GetMapping("/fix-types")
     public ResponseEntity<?> fixSlotTypes() {
         List<Slot> allSlots = slotService.getAllSlots();
