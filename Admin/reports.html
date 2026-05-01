@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | Booking Reports</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --green-main: #16a34a; --green-dark: #14532d; --green-soft: #dcfce7; --sidebar-bg: #14532d; --text-dark: #1a1a2e; --text-mid: #4b5563; --text-light: #9ca3af; }
+    body { font-family: 'Poppins', sans-serif; background: #f0fdf4; display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: var(--sidebar-bg); min-height: 100vh; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 28px 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .logo-circle { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 3px solid #4ade80; display: flex; align-items: center; justify-content: center; }
+    .logo-circle span { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: #1a1a1a; }
+    .logo-name { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    .logo-name em { font-style: normal; color: #86efac; }
+    .sidebar-menu { padding: 20px 0; flex: 1; }
+    .menu-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 24px; margin: 16px 0 8px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; border-left: 3px solid transparent; }
+    .menu-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .menu-item.active { background: rgba(74,222,128,0.15); color: #4ade80; border-left-color: #4ade80; }
+    .menu-icon { font-size: 18px; width: 22px; text-align: center; }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .admin-info { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4ade80, #16a34a); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; font-family: 'Nunito',sans-serif; }
+    .admin-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .admin-role { font-size: 11px; color: rgba(255,255,255,0.45); }
+    .main { margin-left: 240px; flex: 1; padding: 32px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .page-title { font-family: 'Nunito',sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+    .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+    .btn-export { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; border-radius: 12px; padding: 12px 20px; font-family: 'Nunito',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(22,163,74,0.35); transition: all 0.2s; }
+    .btn-export:hover { transform: translateY(-2px); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 1px solid #dcfce7; display: flex; align-items: center; gap: 14px; }
+    .stat-icon { font-size: 32px; }
+    .stat-num { font-family: 'Nunito',sans-serif; font-size: 26px; font-weight: 800; color: var(--text-dark); }
+    .stat-label { font-size: 12px; color: var(--text-light); }
+    .filters-card { background: #fff; border-radius: 14px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #dcfce7; margin-bottom: 20px; }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-label { font-size: 13px; font-weight: 600; color: var(--text-mid); }
+    .filter-input { padding: 9px 14px; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 13px; font-family: 'Poppins',sans-serif; color: var(--text-dark); outline: none; transition: all 0.2s; }
+    .filter-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); }
+    .btn-reset { padding: 9px 18px; border-radius: 10px; background: #f3f4f6; color: var(--text-mid); border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Nunito',sans-serif; }
+    .table-card { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 1px solid #dcfce7; overflow-x: auto; }
+    .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .table-title { font-family: 'Nunito',sans-serif; font-size: 16px; font-weight: 700; color: var(--text-dark); }
+    .record-count { font-size: 13px; color: var(--text-light); }
+    .record-count b { color: var(--green-main); }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th { font-size: 12px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px; text-align: left; border-bottom: 2px solid #f3f4f6; background: #fafafa; white-space: nowrap; }
+    td { padding: 14px 16px; font-size: 13px; color: var(--text-mid); border-bottom: 1px solid #f9fafb; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f0fdf4; }
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .status-badge.confirmed { background: #dcfce7; color: #16a34a; }
+    .status-badge.completed { background: #dbeafe; color: #1d4ed8; }
+    .status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+    .status-badge.pending   { background: #fef9c3; color: #ca8a04; }
+    .amount { font-weight: 700; color: var(--text-dark); }
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><span>P</span></div>
+    <div class="logo-name">Park<em>ify</em></div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-label">Main Menu</div>
+    <a class="menu-item" href="dashboard.html"><span class="menu-icon">🏠</span> Dashboard</a>
+    <a class="menu-item" href="parkings.html"><span class="menu-icon">🅿️</span> Parking Management</a>
+    <a class="menu-item" href="slots.html"><span class="menu-icon">🚗</span> Slot Management</a>
+    <a class="menu-item active" href="reports.html"><span class="menu-icon">📊</span> Booking Reports</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar">A</div>
+      <div><div class="admin-name">Admin</div><div class="admin-role">Super Admin</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">📊 Booking Reports</div>
+      <div class="page-subtitle">View and track all parking bookings</div>
+    </div>
+    <button class="btn-export" onclick="exportCSV()">⬇️ Export CSV</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Bookings</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div><div class="stat-num" id="statConfirmed">—</div><div class="stat-label">Confirmed</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">❌</div>
+      <div><div class="stat-num" id="statCancelled">—</div><div class="stat-label">Cancelled</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div><div class="stat-num" id="statRevenue">—</div><div class="stat-label">Total Revenue</div></div>
+    </div>
+  </div>
+
+  <div class="filters-card">
+    <div class="filter-group">
+      <span class="filter-label">🔍</span>
+      <input class="filter-input" id="searchInput" placeholder="Search user or parking..." oninput="applyFilters()" style="width:220px">
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Status:</span>
+      <select class="filter-input" id="statusFilter" onchange="applyFilters()">
+        <option value="">All</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="pending">Pending</option>
+      </select>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">Reset</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">All Bookings</div>
+      <div class="record-count">Showing <b id="countDisplay">0</b> records</div>
+    </div>
+    <table>
+      <thead>
+  <tr>
+    <th>#</th>
+    <th>Customer</th>
+    <th>Parking</th>
+    <th>Slot</th>
+    <th>Date</th>
+    <th>Check In</th>
+    <th>Check Out</th>
+    <th>Duration</th>
+    <th>Amount</th>
+    <th>Status</th>
+  </tr>
+</thead>
+      <tbody id="bookingTable">
+        <tr><td colspan="10" style="text-align:center;padding:24px;color:#9ca3af">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const API = '
+  let allBookings = [];
+
+  async function loadBookings() {
+    try {
+      const res = await fetch(`${API}/bookings`);
+      allBookings = await res.json();
+
+      // Fetch slot number for each booking
+      await Promise.all(allBookings.map(async b => {
+        if (b.slotId) {
+          try {
+            const sr = await fetch(`${API}/slots/${b.slotId}`);
+            if (sr.ok) {
+              const slot = await sr.json();
+              b._slotNumber = slot.slotNumber;
+            }
+          } catch {}
+        }
+        // Fetch parking name
+        if (b.parkingId) {
+          try {
+            const pr = await fetch(`${API}/parkings/${b.parkingId}`);
+            if (pr.ok) {
+              const parking = await pr.json();
+              b._parkingName = parking.name;
+            }
+          } catch {}
+        }
+      }));
+
+      updateStats(allBookings);
+      renderTable(allBookings);
+    } catch {
+      document.getElementById('bookingTable').innerHTML =
+        `<tr><td colspan="10" style="text-align:center;padding:24px;color:#dc2626">⚠️ Could not load bookings.</td></tr>`;
+    }
+  }
+  function updateStats(data) {
+    document.getElementById('statTotal').textContent     = data.length;
+    document.getElementById('statConfirmed').textContent = data.filter(b => b.status === 'confirmed').length;
+    document.getElementById('statCancelled').textContent = data.filter(b => b.status === 'cancelled').length;
+    const revenue = data.reduce((sum, b) => sum + (b.amount || 0), 0);
+    document.getElementById('statRevenue').textContent   = `₹${revenue.toLocaleString()}`;
+  }
+
+  function renderTable(data) {
+    document.getElementById('countDisplay').textContent = data.length;
+    const tbody = document.getElementById('bookingTable');
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#9ca3af">No bookings found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((b, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><b>${b.customerName || '—'}</b></td>
+        <td>📍 ${b._parkingName || 'Parking ' + b.parkingId}</td>
+        <td><b>${b._slotNumber || '—'}</b></td>
+        <td>${b.bookingDate || '—'}</td>
+        <td>${b.checkInTime ? new Date(b.checkInTime).toLocaleTimeString() : '—'}</td>
+        <td>${b.checkOutTime ? new Date(b.checkOutTime).toLocaleTimeString() : '—'}</td>
+        <td>${b.actualDuration || b.duration || '—'}</td>
+        <td class="amount">₹${b.amount || 0}</td>
+        <td><span class="status-badge ${b.status || 'pending'}">${(b.status || 'pending').charAt(0).toUpperCase() + (b.status || 'pending').slice(1)}</span></td>
+      </tr>
+    `).join('');
+  }
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const filtered = allBookings.filter(b => {
+      const matchSearch = !search ||
+        (b.customerName || '').toLowerCase().includes(search);
+      const matchStatus = !status || b.status === status;
+      return matchSearch && matchStatus;
+    });
+    renderTable(filtered);
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value  = '';
+    document.getElementById('statusFilter').value = '';
+    renderTable(allBookings);
+  }
+
+  function exportCSV() {
+    const rows = [['#', 'Customer', 'Parking ID', 'Slot ID', 'Date', 'Duration', 'Amount', 'Status']];
+    allBookings.forEach((b, i) => rows.push([
+      i+1, b.customerName||'', b.parkingId||'', b.slotId||'',
+      b.bookingDate ? new Date(b.bookingDate).toLocaleDateString() : '',
+      b.duration||'', b.amount||0, b.status||''
+    ]));
+    const csv  = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = 'parkify_bookings.csv';
+    a.click();
+  }
+
+  loadBookings();
+</script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parkify | Parking Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-main: #16a34a; --green-dark: #14532d;
+      --green-soft: #dcfce7; --sidebar-bg: #14532d;
+      --white: #ffffff; --text-dark: #1a1a2e;
+      --text-mid: #4b5563; --text-light: #9ca3af;
+    }
+    body { font-family: 'Poppins', sans-serif; background: #f0fdf4; display: flex; min-height: 100vh; }
+
+    .sidebar { width: 240px; background: var(--sidebar-bg); min-height: 100vh; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+    .sidebar-logo { display: flex; align-items: center; gap: 12px; padding: 28px 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .logo-circle { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 3px solid #4ade80; display: flex; align-items: center; justify-content: center; }
+    .logo-circle span { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: #1a1a1a; }
+    .logo-name { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: #fff; }
+    .logo-name em { font-style: normal; color: #86efac; }
+    .sidebar-menu { padding: 20px 0; flex: 1; }
+    .menu-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35); letter-spacing: 1.5px; text-transform: uppercase; padding: 0 24px; margin: 16px 0 8px; }
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s ease; border-left: 3px solid transparent; }
+    .menu-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .menu-item.active { background: rgba(74,222,128,0.15); color: #4ade80; border-left-color: #4ade80; }
+    .menu-icon { font-size: 18px; width: 22px; text-align: center; }
+    .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .admin-info { display: flex; align-items: center; gap: 10px; }
+    .admin-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #4ade80, #16a34a); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; font-family: 'Nunito',sans-serif; }
+    .admin-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .admin-role { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+    .main { margin-left: 240px; flex: 1; padding: 32px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .page-title { font-family: 'Nunito',sans-serif; font-size: 24px; font-weight: 800; color: var(--text-dark); }
+    .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+
+    .btn-add { display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; border-radius: 12px; padding: 12px 20px; font-family: 'Nunito',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(22,163,74,0.35); transition: all 0.2s; }
+    .btn-add:hover { transform: translateY(-2px); }
+
+    .search-bar { background: #fff; border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #dcfce7; }
+    .search-bar input { border: none; outline: none; font-size: 14px; font-family: 'Poppins',sans-serif; color: var(--text-dark); flex: 1; background: transparent; }
+    .search-bar input::placeholder { color: #c4c9d4; }
+
+    .table-card { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.05); border: 1px solid #dcfce7; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th { font-size: 12px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 16px; text-align: left; border-bottom: 2px solid #f3f4f6; background: #fafafa; white-space: nowrap; }
+    td { padding: 16px; font-size: 13px; color: var(--text-mid); border-bottom: 1px solid #f9fafb; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f0fdf4; }
+
+    .parking-name { font-weight: 600; color: var(--text-dark); }
+    .parking-addr { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+    .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .status-badge.active  { background: #dcfce7; color: #16a34a; }
+    .status-badge.full    { background: #fee2e2; color: #dc2626; }
+    .status-badge.partial { background: #fef9c3; color: #ca8a04; }
+
+    .action-btns { display: flex; gap: 8px; }
+    .btn-edit { padding: 6px 14px; border-radius: 8px; background: #dbeafe; color: #1d4ed8; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-edit:hover { background: #bfdbfe; }
+    .btn-delete { padding: 6px 14px; border-radius: 8px; background: #fee2e2; color: #dc2626; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-delete:hover { background: #fecaca; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #fff; border-radius: 20px; padding: 36px; width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.15); animation: modalIn 0.3s ease; }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(-10px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-title { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 24px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1/-1; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-mid); }
+    .form-input { padding: 11px 14px; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 13px; font-family: 'Poppins',sans-serif; color: var(--text-dark); outline: none; transition: all 0.2s; }
+    .form-input:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,0.1); background: #fff; }
+    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+    .btn-cancel { padding: 11px 22px; border-radius: 10px; background: #f3f4f6; color: var(--text-mid); border: none; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Nunito',sans-serif; }
+    .btn-save { padding: 11px 22px; border-radius: 10px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Nunito',sans-serif; box-shadow: 0 4px 14px rgba(22,163,74,0.3); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .delete-modal { background: #fff; border-radius: 20px; padding: 36px; width: 400px; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,0.15); animation: modalIn 0.3s ease; }
+    .delete-icon { font-size: 48px; margin-bottom: 16px; }
+    .delete-title { font-family: 'Nunito',sans-serif; font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 8px; }
+    .delete-sub { font-size: 13px; color: var(--text-light); margin-bottom: 24px; }
+    .btn-confirm-delete { padding: 11px 22px; border-radius: 10px; background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: none; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Nunito',sans-serif; margin-right: 10px; }
+
+    .total-count { font-size: 13px; color: var(--text-light); margin-bottom: 16px; }
+    .total-count b { color: var(--green-main); }
+
+    .toast { position: fixed; bottom: 28px; right: 28px; padding: 12px 22px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.15); display: none; z-index: 999; font-family: 'Nunito',sans-serif; }
+    .toast.success { background: #16a34a; color: #fff; }
+    .toast.error   { background: #dc2626; color: #fff; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-circle"><span>P</span></div>
+    <div class="logo-name">Park<em>ify</em></div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="menu-label">Main Menu</div>
+    <a class="menu-item" href="dashboard.html"><span class="menu-icon">🏠</span> Dashboard</a>
+    <a class="menu-item active" href="parkings.html"><span class="menu-icon">🅿️</span> Parking Management</a>
+    <a class="menu-item" href="slots.html"><span class="menu-icon">🚗</span> Slot Management</a>
+    <a class="menu-item" href="reports.html"><span class="menu-icon">📊</span> Booking Reports</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar">A</div>
+      <div>
+        <div class="admin-name">Admin</div>
+        <div class="admin-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">🅿️ Parking Management</div>
+      <div class="page-subtitle">Manage all registered parking locations</div>
+    </div>
+    <button class="btn-add" onclick="openAddModal()">＋ Add New Parking</button>
+  </div>
+
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" id="searchInput" placeholder="Search by parking name or location..." oninput="filterTable()">
+  </div>
+
+  <div class="table-card">
+    <div class="total-count">Showing <b id="countDisplay">0</b> parking locations</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Parking Name</th>
+          <th>Total Slots</th>
+          <th>Available</th>
+          <th>Car Price/hr</th>
+          <th>Bike Price/hr</th>
+          <th>Hours</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="parkingTable">
+        <tr><td colspan="9" style="text-align:center;padding:24px;color:#9ca3af">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">➕ Add New Parking</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Parking Name *</label>
+        <input class="form-input" id="fName" placeholder="e.g. City Center Parking">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Location / Address *</label>
+        <input class="form-input" id="fLocation" placeholder="e.g. MG Road, Bangalore">
+      </div>
+      <div class="form-group">
+        <label class="form-label">City</label>
+        <input class="form-input" id="fCity" placeholder="e.g. Bangalore">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Operating Hours</label>
+        <input class="form-input" id="fHours" placeholder="e.g. 6AM - 11PM">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Car Price/hr (₹)</label>
+        <input class="form-input" id="fCarPrice" type="number" placeholder="e.g. 40">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bike Price/hr (₹)</label>
+        <input class="form-input" id="fBikePrice" type="number" placeholder="e.g. 20">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Latitude</label>
+        <input class="form-input" id="fLat" placeholder="e.g. 12.9716">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Longitude</label>
+        <input class="form-input" id="fLng" placeholder="e.g. 77.5946">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Status</label>
+        <select class="form-input" id="fStatus">
+          <option value="Open">Open</option>
+          <option value="Closed">Closed</option>
+          <option value="Full">Full</option>
+          <option value="Maintenance">Maintenance</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="btnSave" onclick="saveParking()">Save Parking</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="delete-modal">
+    <div class="delete-icon">🗑️</div>
+    <div class="delete-title">Delete Parking?</div>
+    <div class="delete-sub">This action cannot be undone. All slot data for this parking will also be removed.</div>
+    <button class="btn-confirm-delete" onclick="confirmDelete()">Yes, Delete</button>
+    <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '/api';
+  let allParkings = [];
+  let editingId   = null;
+  let deletingId  = null;
+
+  // ── LOAD PARKINGS ──
+  async function loadParkings() {
+    try {
+      const res = await fetch(`${API}/parkings`);
+      allParkings = await res.json();
+
+      // Fetch slot counts for each parking
+      await Promise.all(allParkings.map(async p => {
+        try {
+          const sr = await fetch(`${API}/slots?parkingId=${p.id}`);
+          if (sr.ok) {
+            const slots = await sr.json();
+            p._totalSlots = slots.length;
+            p._available  = slots.filter(s => (s.status||'').toLowerCase() === 'available').length;
+          } else {
+            p._totalSlots = 0; p._available = 0;
+          }
+        } catch {
+          p._totalSlots = 0; p._available = 0;
+        }
+      }));
+
+      renderTable(allParkings);
+    } catch {
+      document.getElementById('parkingTable').innerHTML =
+        `<tr><td colspan="9" style="text-align:center;padding:24px;color:#dc2626">⚠️ Could not load parkings. Is backend running?</td></tr>`;
+    }
+  }
+
+  function getStatusBadge(p) {
+    const status = (p.status || 'Open').toLowerCase();
+    if (status === 'full')   return '<span class="status-badge full">Full</span>';
+    if (status === 'closed') return '<span class="status-badge full">Closed</span>';
+    if (p._available === 0)  return '<span class="status-badge full">Full</span>';
+    if (p._available <= 3)   return '<span class="status-badge partial">Limited</span>';
+    return '<span class="status-badge active">Open</span>';
+  }
+
+  function renderTable(data) {
+    document.getElementById('countDisplay').textContent = data.length;
+    const tbody = document.getElementById('parkingTable');
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:#9ca3af">No parkings found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((p, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>
+          <div class="parking-name">${p.name}</div>
+          <div class="parking-addr">📍 ${p.location || '—'} ${p.city ? '· ' + p.city : ''}</div>
+        </td>
+        <td>${p._totalSlots || 0}</td>
+        <td>${p._available || 0}</td>
+        <td>₹${p.carPrice || 0}</td>
+        <td>₹${p.bikePrice || 0}</td>
+        <td>${p.hours || '—'}</td>
+        <td>${getStatusBadge(p)}</td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-edit"   onclick="openEditModal(${p.id})">✏️ Edit</button>
+            <button class="btn-delete" onclick="openDeleteModal(${p.id})">🗑️ Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allParkings.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.location || '').toLowerCase().includes(q) ||
+      (p.city || '').toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  }
+
+  // ── ADD MODAL ──
+  function openAddModal() {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = '➕ Add New Parking';
+    ['fName','fLocation','fCity','fHours','fCarPrice','fBikePrice','fLat','fLng'].forEach(id =>
+      document.getElementById(id).value = ''
+    );
+    document.getElementById('fStatus').value = 'Open';
+    document.getElementById('formModal').classList.add('show');
+  }
+
+  // ── EDIT MODAL ──
+  function openEditModal(id) {
+    editingId = id;
+    const p = allParkings.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('modalTitle').textContent = '✏️ Edit Parking';
+    document.getElementById('fName').value     = p.name || '';
+    document.getElementById('fLocation').value = p.location || '';
+    document.getElementById('fCity').value     = p.city || '';
+    document.getElementById('fHours').value    = p.hours || '';
+    document.getElementById('fCarPrice').value = p.carPrice || '';
+    document.getElementById('fBikePrice').value= p.bikePrice || '';
+    document.getElementById('fLat').value      = p.lat || '';
+    document.getElementById('fLng').value      = p.lng || '';
+    document.getElementById('fStatus').value   = p.status || 'Open';
+    document.getElementById('formModal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('formModal').classList.remove('show');
+    editingId = null;
+  }
+
+  // ── SAVE ──
+  async function saveParking() {
+    const name     = document.getElementById('fName').value.trim();
+    const location = document.getElementById('fLocation').value.trim();
+    if (!name || !location) { showToast('❌ Please fill required fields!', 'error'); return; }
+
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    const body = {
+      name, location,
+      city:      document.getElementById('fCity').value.trim(),
+      hours:     document.getElementById('fHours').value.trim(),
+      carPrice:  parseFloat(document.getElementById('fCarPrice').value) || 0,
+      bikePrice: parseFloat(document.getElementById('fBikePrice').value) || 0,
+      lat:       parseFloat(document.getElementById('fLat').value) || null,
+      lng:       parseFloat(document.getElementById('fLng').value) || null,
+      status:    document.getElementById('fStatus').value
+    };
+
+    try {
+      let res;
+      if (editingId) {
+        res = await fetch(`${API}/parkings/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      } else {
+        res = await fetch(`${API}/parkings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      }
+      if (!res.ok) throw new Error();
+      showToast(editingId ? '✅ Parking updated!' : '✅ Parking added!', 'success');
+      closeModal();
+      loadParkings();
+    } catch {
+      showToast('❌ Failed to save. Try again.', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save Parking';
+    }
+  }
+
+  // ── DELETE ──
+  function openDeleteModal(id) {
+    deletingId = id;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    deletingId = null;
+  }
+
+  async function confirmDelete() {
+    try {
+      const res = await fetch(`${API}/parkings/${deletingId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      showToast('✅ Parking deleted!', 'success');
+      closeDeleteModal();
+      loadParkings();
+    } catch {
+      showToast('❌ Failed to delete.', 'error');
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type}`;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  loadParkings();
+</script>
+</body>
+</html>
